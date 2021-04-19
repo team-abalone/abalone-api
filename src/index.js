@@ -1,16 +1,14 @@
 require('dotenv').config()
 
-let express = require('express')
-let app = express()
-const io = require('socket.io')(server);
-
 const PORT  = process.env.PORT || 5001
-app.listen(PORT,()=> console.info(`Server has started on ${PORT}`))
-
-app.get("/", (req, res) => {
-    res.send("welcome to the abalone mobile app api");
-})
+const io = require('socket.io')(PORT);
 
 io.on('connection', (socket) => {
-    console.log('request received');
+    console.log("connection received");
+
+    socket.on('create-room', (message) => {
+        console.log('room-creation received');
+        // TODO: Handle room creation accordingly and return information to client.
+    });
 });
+
