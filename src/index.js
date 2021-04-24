@@ -1,16 +1,25 @@
-require('dotenv').config()
+const config = require('dotenv').config();
+const net = require('net');
 
+
+const PORT = process.env.PORT || 5001;
+const host = process.env.HOST || "127.0.0.1";
+
+let server = net.createServer();
+server.listen(PORT, host, () => {
+    res.send("abalone server running");
+})
+
+
+/*
 let express = require('express')
 let app = express()
 const io = require('socket.io')(server);
 
-const PORT  = process.env.PORT || 5001
-app.listen(PORT,(req,res)=> res.send(`Server has started on ${PORT}`))
 
-app.get("/", (req, res) => {
-    res.send("welcome to the abalone mobile app api");
-})
 
 io.on('connection', (socket) => {
     console.log('request received');
-});
+
+
+});*/
