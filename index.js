@@ -1,4 +1,4 @@
-git import net from 'net';
+import net from 'net';
 
 const PORT = process.env.PORT || 5001;
 const host = process.env.HOST || "0.0.0.0";
