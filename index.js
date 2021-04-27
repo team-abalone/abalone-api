@@ -1,4 +1,6 @@
 import net from 'net';
+import serverControls from './Controls/controls.js';
+//const fA = require('./Controls/controls.js');
 
 const PORT = process.env.PORT || 5001;
 const host = process.env.HOST || "127.0.0.1";
@@ -20,6 +22,7 @@ server.on("connection", function (socket) {
          * Functions that handle input go here
          * Chat : gets message, returns array [playername][msg] -> display in app
          * Join: accepts parameter
+         * Game: to be discussed
          * */
 
         //received data should start with '0', '1' or '2' to indicate which functions to use
@@ -31,13 +34,16 @@ server.on("connection", function (socket) {
         let type = (d+'').split(" ")[0];
 
         if (type == 0) {
-            console.log("case1");
+            serverControls.a();
         }
         else if (type == 1) {
-            console.log("case2");
+            serverControls.b();
         }
         else if (type == 2) {
-            console.log("case3");
+            serverControls.chatFunction(d);
+        }
+        else {
+            console.log("Unclear type of action");
         }
     });
 
