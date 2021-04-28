@@ -10,11 +10,38 @@ class serverControls {
        socket.name = `${socket.remoteAddress} : ${socket.remotePort}`;  //later identifies corresponding socket
 
        room.push(socket.name);
-        console.log(`Raum[0]: ${room[0]} \nRaum[1]: ${room[1]}`);
+       
 
         return room;
     }
-    
+
+    //Function to let players 2-4 enter the room via key
+    static joinRoom = (rooms, roomKey) => {
+
+    }
+
+    //Subroutine used to search Rooms to find one with the right key
+    //Mainly to be used in other functions
+    static findRoomViaKey = (rooms, roomKey) => {
+        console.log(`Roomkey given: ${roomKey}\n`); //debug line
+        let foundRoom;
+        let check = 0;                              //will stay 0 if no room is found
+        for (let i = 0; i < rooms.length; i++) {
+            if (rooms[i][0] == roomKey) {
+                foundRoom = rooms[i];
+                check = 1;                          // room found -> check passes
+            }
+        }
+        if (check == 0) {                           //Null will be returned in case of no found room. 
+            console.log("ROOM NOT FOUND");          //debug line -> TO DO: write message to socket
+            return null;
+        }
+
+        return foundRoom;
+    }
+
+
+    //Dummy function to test Server functionality
     static chatFunction = (data) => {
         let extractedString = (data + '').split(" ");
         let name = extractedString[1];
