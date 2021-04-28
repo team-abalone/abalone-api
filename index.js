@@ -34,13 +34,15 @@ server.on("connection", function (socket) {
         let type = (d+'').split(" ")[0];
 
         if (type == 0) {
-            serverControls.a();
+            serverControls.createRoom(socket);
         }
+
         else if (type == 1) {
-            serverControls.b();
+            serverControls.chatFunction(d); //will later return an array, consisting of username and message and write it to the socket
         }
+
         else if (type == 2) {
-            serverControls.chatFunction(d);
+            
         }
         else {
             console.log("Unclear type of action");
