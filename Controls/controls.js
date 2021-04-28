@@ -16,30 +16,58 @@ class serverControls {
     }
 
     //Function to let players 2-4 enter the room via key
-    static joinRoom = (rooms, roomKey) => {
+    static joinRoom = (rooms, roomKey, socket) => {
 
+        socket.name = `${socket.remoteAddress} : ${socket.remotePort}`;
+        let roomToJoin = this.findRoomViaKey(rooms, roomKey);
+        if (this.checkPlayers(roomToJoin) > 4) {
+            console.log("ERROR: ROOM IS FULL");
+        }
+        else {
+            roomToJoin.push(socket.name);
+            console.log(`${socket.name} joined the room with the key ${roomKey}\nNumber of Players: ${this.checkPlayers(roomToJoin)}`);
+        }
+
+    }
+    //Subroutine used to display number of players that are currently in a room
+    //Mainly to be used in other functions
+    static checkPlayers = (room) => {
+        return (room.length - 1);
     }
 
     //Subroutine used to search Rooms to find one with the right key
     //Mainly to be used in other functions
+    // TO DO : find out why string comparison is always false, even though the strings seem equal
     static findRoomViaKey = (rooms, roomKey) => {
         console.log(`Roomkey given: ${roomKey}\n`); //debug line
+        
         let foundRoom;
         let check = 0;                              //will stay 0 if no room is found
         for (let i = 0; i < rooms.length; i++) {
-            if (rooms[i][0] == roomKey) {
+            if (rooms[i][0].normalize() === roomKey.normalize()) {
                 foundRoom = rooms[i];
+                console.log(typeof (roomKey) + " " + roomKey);
+                console.log(typeof (rooms[i][0]) + " " + rooms[i][0]);
                 check = 1;                          // room found -> check passes
+            } else {
+                console.log(typeof (roomKey) + " " + roomKey);
+                console.log(typeof (rooms[i][0]) + " " + rooms[i][0]);
             }
         }
         if (check == 0) {                           //Null will be returned in case of no found room. 
             console.log("ROOM NOT FOUND");          //debug line -> TO DO: write message to socket
+            
             return null;
         }
 
         return foundRoom;
     }
-
+    //debug function
+    static displayRooms = (rooms) => {
+        for (let i = 0; i < rooms.length; i++) {
+            console.log(rooms[i][0]);
+        }
+    }
 
     //Dummy function to test Server functionality
     static chatFunction = (data) => {

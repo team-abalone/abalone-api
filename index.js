@@ -5,10 +5,10 @@ import serverControls from './Controls/controls.js';
 const PORT = process.env.PORT || 5001;
 const host = process.env.HOST || "127.0.0.1";
 
-let server = net.createServer();
+const server = net.createServer();
 
 //Different Rooms created by the createRoom() function go here. These allow the Server to write to corresponding sockets
-let rooms = [];
+ let rooms = [];
 
 server.listen(PORT, host, function () {
     console.log(`Abalone server running \nPORT: ${PORT} \Host: ${host}\n`);
@@ -38,7 +38,7 @@ server.on("connection", function (socket) {
 
         if (type == 0) {
             rooms.push(serverControls.createRoom(socket));
-            console.log(`Raum[0]: ${rooms[0][0]} \nRaum[1]: ${rooms[0][1]}`); //debug line
+            console.log(rooms[rooms.length-1][0]); //debug line
             
         }
 
@@ -47,7 +47,14 @@ server.on("connection", function (socket) {
         }
 
         else if (type == 2) {
-            
+            serverControls.joinRoom(rooms, (d + '').split(" ")[1], socket);
+        }
+            //debug only
+        else if (type == 3) {
+            serverControls.findRoomViaKey(rooms, (d + '').split(" ")[1]);
+        }   //debug only
+        else if (type == 4) {
+            serverControls.displayRooms(rooms);
         }
         else {
             console.log("Unclear type of action");
