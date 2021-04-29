@@ -42,20 +42,12 @@ server.on("connection", function (socket) {
         }
 
         else if (type == 1) {
-            serverControls.chatFunction(d, rooms, socket); //will later return an array, consisting of username and message and write it to the socket
+            serverControls.joinRoom(rooms, (d.toString()).split(" ")[1], socket);
         }
 
         else if (type == 2) {
-            serverControls.joinRoom(rooms, (d.toString()).split(" ")[1], socket);
-        }
-            //debug only
-        else if (type == 3) {
-            serverControls.findRoomByPlayer(rooms, socket);
-            console.log(`DEBUG FINDROOMBYPLAYER: ${serverControls.findRoomByPlayer(rooms, socket)[0].toString()}`);
-        }   //debug only
-        else if (type == 4) {
-            serverControls.displayRooms(rooms);
-        }
+            serverControls.chatFunction(d, rooms, socket); //will later return an array, consisting of username and message and write it to the socket
+        }        
         else {
             console.log("Unclear type of action");
         }
