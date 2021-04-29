@@ -1,5 +1,5 @@
 import net from 'net';
-import serverControls from './Controls/controls.js';
+import serverControls from '../Controls/controls.js';
 //const fA = require('./Controls/controls.js');
 
 const PORT = process.env.PORT || 5001;
