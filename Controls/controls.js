@@ -37,23 +37,25 @@ class serverControls {
 
     //Subroutine used to search Rooms to find one with the right key
     //Mainly to be used in other functions
-    // TO DO : find out why string comparison is always false, even though the strings seem equal
+
+    // TO DO : refactoring later on
     static findRoomViaKey = (rooms, roomKey) => {
         console.log(`Roomkey given: ${roomKey}\n`); //debug line
-        
+
+        //roomkey had a space at the end that a room at [0] doesnt have. This solution should be refactored later on
+        let roomKeyNew = roomKey.split('')[0] + roomKey.split('')[1] + roomKey.split('')[2] + roomKey.split('')[3] + roomKey.split('')[4];
+
+
         let foundRoom;
         let check = 0;                              //will stay 0 if no room is found
         for (let i = 0; i < rooms.length; i++) {
-            if (rooms[i][0].normalize() === roomKey.normalize()) {
+            if (rooms[i][0].toString().normalize() == roomKeyNew.normalize()) {
                 foundRoom = rooms[i];
-                console.log(typeof (roomKey) + " " + roomKey);
-                console.log(typeof (rooms[i][0]) + " " + rooms[i][0]);
+                console.log("FOUND A ROOM");               
                 check = 1;                          // room found -> check passes
-            } else {
-                console.log(typeof (roomKey) + " " + roomKey);
-                console.log(typeof (rooms[i][0]) + " " + rooms[i][0]);
             }
         }
+
         if (check == 0) {                           //Null will be returned in case of no found room. 
             console.log("ROOM NOT FOUND");          //debug line -> TO DO: write message to socket
             

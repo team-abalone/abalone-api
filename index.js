@@ -35,7 +35,7 @@ server.on("connection", function (socket) {
         // further types could occur depending on final game (cheat function, etc)
 
         let type = (d+'').split(" ")[0];
-
+        
         if (type == 0) {
             rooms.push(serverControls.createRoom(socket));
             console.log(rooms[rooms.length-1][0]); //debug line
@@ -47,11 +47,11 @@ server.on("connection", function (socket) {
         }
 
         else if (type == 2) {
-            serverControls.joinRoom(rooms, (d + '').split(" ")[1], socket);
+            serverControls.joinRoom(rooms, (d.toString()).split(" ")[1], socket);
         }
             //debug only
         else if (type == 3) {
-            serverControls.findRoomViaKey(rooms, (d + '').split(" ")[1]);
+            serverControls.findRoomViaKey(rooms, (d.toString()).split(" ")[1]);
         }   //debug only
         else if (type == 4) {
             serverControls.displayRooms(rooms);
