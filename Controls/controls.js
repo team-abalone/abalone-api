@@ -9,7 +9,7 @@ class serverControls {
        room.push(randomstring.generate(5));                             //Generates 5 digit randomstring as roomkey
        socket.name = `${socket.remoteAddress} : ${socket.remotePort}`;  //later identifies corresponding socket
 
-       room.push(socket.name);
+       room.push(socket);
        
 
         return room;
@@ -24,7 +24,7 @@ class serverControls {
             console.log("ERROR: ROOM IS FULL");
         }
         else {
-            roomToJoin.push(socket.name);
+            roomToJoin.push(socket);
             console.log(`${socket.name} joined the room with the key ${roomKey}\nNumber of Players: ${this.checkPlayers(roomToJoin)}`);
         }
 
@@ -37,7 +37,6 @@ class serverControls {
 
     //Subroutine used to search Rooms to find one with the right key
     //Mainly to be used in other functions
-
     // TO DO : refactoring later on
     static findRoomViaKey = (rooms, roomKey) => {
         console.log(`Roomkey given: ${roomKey}\n`); //debug line
@@ -71,18 +70,34 @@ class serverControls {
         }
     }
 
+    //Subroutine used to find the Room a certain player is in
+    //Mainly to be used in other functions
+    static findRoomByPlayer(rooms, socket) {
+        for (let i = 0; i < rooms.length; i++) {
+            for (let j = 1; j < 5; j++) {
+                if (rooms[i][j].name == socket.name) return rooms[i];               
+            }
+        }
+        console.log("room not found");
+        return null;
+    }
+
     //Dummy function to test Server functionality
-    static chatFunction = (data) => {
-        let extractedString = (data + '').split(" ");
+    static chatFunction = (data, rooms, socket) => {
+        let extractedString = data.toString().split(" ");
         let name = extractedString[1];
         let msg = "";
         
         for (let i = 2; i < extractedString.length; i++) {
             msg += `${extractedString[i]} `;
         }
-        console.log(`${name} said: ${msg}`);
-
-       // return { name, msg };  -Eventually, the server will response with an array
+        //gets the Room the current socket is in
+        let currentRoom = this.findRoomByPlayer(rooms, socket);
+        //Writes to every socket in the room
+        for (let i = 1; i < currentRoom.length; i++) {
+            currentRoom[i].write(msg);
+        }
+       // return { name, msg };  -Eventually, the server will respond with an array
     }
 }
 export default serverControls;

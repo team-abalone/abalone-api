@@ -34,16 +34,15 @@ server.on("connection", function (socket) {
         //2 : game logic
         // further types could occur depending on final game (cheat function, etc)
 
-        let type = (d+'').split(" ")[0];
+        let type = (d.toString()).split(" ")[0];
         
         if (type == 0) {
             rooms.push(serverControls.createRoom(socket));
-            console.log(rooms[rooms.length-1][0]); //debug line
-            
+            console.log(rooms[rooms.length-1][0]); //debug line            
         }
 
         else if (type == 1) {
-            serverControls.chatFunction(d); //will later return an array, consisting of username and message and write it to the socket
+            serverControls.chatFunction(d, rooms, socket); //will later return an array, consisting of username and message and write it to the socket
         }
 
         else if (type == 2) {
@@ -51,7 +50,8 @@ server.on("connection", function (socket) {
         }
             //debug only
         else if (type == 3) {
-            serverControls.findRoomViaKey(rooms, (d.toString()).split(" ")[1]);
+            serverControls.findRoomByPlayer(rooms, socket);
+            console.log(`DEBUG FINDROOMBYPLAYER: ${serverControls.findRoomByPlayer(rooms, socket)[0].toString()}`);
         }   //debug only
         else if (type == 4) {
             serverControls.displayRooms(rooms);
