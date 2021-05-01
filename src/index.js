@@ -1,68 +1,94 @@
-import net from 'net';
-import serverControls from '../Controls/controls.js';
-//const fA = require('./Controls/controls.js');
+import net from "net";
 
 const PORT = process.env.PORT || 5001;
 const host = process.env.HOST || "127.0.0.1";
 
+import { RoomControls, ChatControls } from "./Controls/index.js";
+
+import { InCommandCodes } from "./GlobalVars.js";
+
 const server = net.createServer();
 
-//Different Rooms created by the createRoom() function go here. These allow the Server to write to corresponding sockets
- let rooms = [];
+const roomControls = new RoomControls();
+const chatControls = new ChatControls();
+
+let sockets = [];
 
 server.listen(PORT, host, function () {
-    console.log(`Abalone server running \nPORT: ${PORT} \Host: ${host}\n`);
+  console.log(`Abalone server running \nPORT: ${PORT} \Host: ${host}\n`);
 });
 
+/**
+ * The following structure is used to send commands:
+ * {
+ *  userId: <userId>,
+ *  commandCode: <commandCode>,
+ *  props: <props>,
+ * }
+ */
 server.on("connection", function (socket) {
-    //getting sockets adress for connecting non-host-players later on
-    var remoteAdress = socket.remoteAdress + socket.remotePort;
-    console.log("Connected");
+  console.log(socket);
+  var remoteAdress = socket.remoteAdress + socket.remotePort;
+  console.log(`Connections from ${remoteAdress} established.`);
 
-    //when socket is build:
-    socket.on("data", function (d) {
-        /*
-         * Functions that handle input go here
-         * Chat : gets message, returns array [playername][msg] -> display in app
-         * Join: accepts parameter
-         * Game: to be discussed
-         * */
+  // Keep socket, so it can later be used to notify users about executed actions.
+  // (e.g. Player movement, Player joining room, etc.)
+  sockets.push(socket);
 
-        //received data should start with '0', '1' or '2' to indicate which functions to use
-        //0 : join another socket
-        //1 : write lobby chat
-        //2 : game logic
-        // further types could occur depending on final game (cheat function, etc)
+  // Handling data from client.
+  socket.on("data", function (data) {
+    // Validating the command structure
+    validateCommandStructure(data);
 
-        let type = (d.toString()).split(" ")[0];
-        
-        if (type == 0) {
-            rooms.push(serverControls.createRoom(socket));
-            console.log(rooms[rooms.length-1][0]); //debug line            
-        }
+    let { userId } = props;
 
-        else if (type == 1) {
-            serverControls.joinRoom(rooms, (d.toString()).split(" ")[1], socket);
-        }
+    /**
+     * Depending on the commandType parameter the appropriate
+     * action is executed.
+     */
+    try {
+      if (InCommandCodes.commandType === InCommandCodes.CreateRoom) {
+        let roomKey = roomControls.CreateRoom(userId);
+        socket.write(roomKey);
+      } else if (InCommandCodes.commandType === InCommandCodes.JoinRoom) {
+        roomControls.JoinRoom(userId, data.roomKey);
+        socket.write("Room joined successfully.");
+        // TODO: Notify other users currently in room.
+      } else if (
+        InCommandCodes.commandType === InCommandCodes.SendChatMessage
+      ) {
+        // TODO: Fix or remove, chat not that important right now.
+        chatControls.chatFunction(data, rooms, socket);
+      } else {
+        throw new Error("Unclear type of action.");
+      }
+    } catch (err) {
+      socket.write(err);
+    }
+  });
 
-        else if (type == 2) {
-            serverControls.chatFunction(d, rooms, socket); //will later return an array, consisting of username and message and write it to the socket
-        }        
-        else {
-            console.log("Unclear type of action");
-        }
-    });
+  socket.on("error", function (error) {
+    console.log(error);
+  });
 
-    socket.on("error", function (error) {
-        console.log(error);
-    });
-
-    socket.once("close", function () {
-
-    });
-
+  socket.once("close", function (ev) {
+    console.log(ev);
+  });
 });
 
-
-
-
+/**
+ * Validates the overall command structure,
+ * used on the input to check if it meets the criteria
+ * for a valid command.
+ * @param {*} input
+ * @param {*} includeUserId
+ */
+const validateCommandStructure = (input, includeUserId = false) => {
+  if (
+    !input.hasOwnProperty("commandCode") ||
+    !input.hasOwnProperty("props") ||
+    (includeUserId && !input.hasOwnProperty("userId"))
+  ) {
+    throw "Invalid command structure";
+  }
+};
