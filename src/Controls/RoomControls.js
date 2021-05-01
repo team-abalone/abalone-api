@@ -10,9 +10,9 @@ class RoomControls {
   constructor() {}
 
   /**
-   * Creates a new room for the user with the id <props.userId>
+   * Creates a new room for the user with the given id
    * and returns it.
-   * @param {*} props
+   * @param {*} userId The id of the user to create the room for.
    * @returns The roomKey of the created room.
    */
   createRoom = (userId) => {
@@ -65,10 +65,13 @@ class RoomControls {
     }
   };
 
-  //Subroutine used to find the Room a certain player is in
-  //Mainly to be used in other functions
+  /**
+   * Returns the room the user with the given id is currently in.
+   * @param {*} userId The id of the user to search the room for.
+   * @returns The room the user with the given id is in.
+   */
   findRoomByPlayer = (userId) => {
-    return this.rooms.find((rooms) => rooms.players === userId);
+    return this.rooms.find((rooms) => rooms.players.includes(userId));
   };
 
   /**
