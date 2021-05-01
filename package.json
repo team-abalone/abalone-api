@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "The api for the abalone mobile app.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./src/index.js"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +15,8 @@
     "migrate-mongo": "^8.2.2",
     "mongoose": "^5.12.4",
     "nodemon": "^2.0.7",
-    "socket.io": "^4.0.1"
+    "randomstring": "^1.1.5",
+    "socket.io": "^4.0.1",
+    "socket.io-client": "^4.0.1"
   }
 }
