@@ -5,9 +5,10 @@ import randomstring from "randomstring";
  * all actions around rooms.
  */
 class RoomControls {
-  rooms = [];
-
-  constructor() {}
+    
+    constructor() {
+        this.rooms =[];
+    }
 
   /**
    * Creates a new room for the user with the given id
@@ -15,7 +16,7 @@ class RoomControls {
    * @param {*} userId The id of the user to create the room for.
    * @returns The roomKey of the created room.
    */
-  createRoom = (userId) => {
+   static createRoom = (userId) => {
     //TODO: Check if user already has room and close it.
 
     let room = {
@@ -24,7 +25,7 @@ class RoomControls {
       players: [userId],
     };
 
-    rooms.push(room);
+    this.rooms.push(room);
 
     return room.roomkey;
   };

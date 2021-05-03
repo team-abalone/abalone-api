@@ -54,7 +54,7 @@ server.on("connection", function (socket) {
          */
         try {
             if (commandCode === InCommandCodes.CreateRoom) {
-                let roomKey = roomControls.CreateRoom(userId);
+                let roomKey = RoomControls.createRoom(userId);
                 socket.write(roomKey);
             } else if (commandCode === InCommandCodes.JoinRoom) {
                 roomControls.JoinRoom(userId, data.roomKey);
