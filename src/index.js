@@ -54,10 +54,10 @@ server.on("connection", function (socket) {
          */
         try {
             if (commandCode === InCommandCodes.CreateRoom) {
-                let roomKey = RoomControls.createRoom(userId);
+                let roomKey = roomControls.createRoom(userId);
                 socket.write(roomKey);
             } else if (commandCode === InCommandCodes.JoinRoom) {
-                roomControls.JoinRoom(userId, data.roomKey);
+                roomControls.JoinRoom(userId, props);
                 socket.write("Room joined successfully.");
                 // TODO: Notify other users currently in room.
             } else if (commandCode === InCommandCodes.SendChatMessage
