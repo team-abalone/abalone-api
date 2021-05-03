@@ -39,9 +39,10 @@ server.on("connection", function (socket) {
   sockets.push(socket);
 
   // Handling data from client.
-  socket.on("data", function (data) {
+    socket.on("data", function (data) {
+
     // Validating the command structure
-    validateCommandStructure(data);
+    validateCommandStructure(JSON.parse(data.toString())); //raw data Object = Buffer (type: "Buffer" data: [...] -> must be converted)
 
     let { userId, commandCode, props } = data;
 
@@ -86,12 +87,13 @@ server.on("connection", function (socket) {
  * @param {*} input
  * @param {*} includeUserId
  */
+
 const validateCommandStructure = (input, includeUserId = false) => {
     try {
         if (
             !input.hasOwnProperty("commandCode") ||
             !input.hasOwnProperty("props") ||
-            (includeUserId && !input.hasOwnProperty("userId"))
+            ((includeUserId == true) && !input.hasOwnProperty("userId"))
         ) {
             throw new InvalidCommandException("Invalid Argument");
         }
