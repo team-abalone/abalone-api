@@ -6,14 +6,6 @@ const InCommandCodes = {
   "SendChatMessage": "50",
 };
 
-function InvalidCommandException(message) {
-    this.message = message;
-    this.name = "InvalidCommandException";
-}
 
-function InvalidActionException(message) {
-    this.message = message;
-    this.name = "InvalidActionException";
-}
 
-export { InCommandCodes, InvalidCommandException, InvalidActionException };
+export { InCommandCodes};

@@ -7,7 +7,7 @@ import { RoomControls, ChatControls } from "./Controls/index.js";
 
 import { InCommandCodes } from "./GlobalVars.js";
 
-import { InvalidCommandException , InvalidActionException} from "./GlobalVars.js";
+import { InvalidCommandException , InvalidActionException} from "./Exceptions.js";
 
 const server = net.createServer();
 

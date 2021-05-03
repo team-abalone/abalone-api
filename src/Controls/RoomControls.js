@@ -1,4 +1,5 @@
 import randomstring from "randomstring";
+import { RoomNotFoundException, RoomFullException } from "../Exceptions.js"
 
 /**
  * Contains logic implementations, regarding
@@ -40,15 +41,20 @@ class RoomControls {
   joinRoom = (userId, roomKey) => {
     let roomToJoin = this.rooms.find((r) => r.roomKey == roomKey);
 
-    if (!roomToJoin) {
-      throw new Error(
-        `Room with key ${roomToJoin.roomKey} could not be found. Make sure to enter a valid key.`
-      );
-    }
-
-    if (roomToJoin.players > 4) {
-      throw new Error(`Room with key ${roomToJoin.roomKey} is already full.`);
-    }
+      try {
+          if (!roomToJoin) {
+              throw new RoomNotFoundException(roomKey);
+          }
+      } catch (e) {
+          socket.write(`${e.name}: ${e.message}`);
+      }
+      try {
+          if (roomToJoin.players > 4) {
+              throw new RoomFullException(roomToJoin.roomKey);
+          }
+      } catch (e) {
+          socket.write(`${e.name}: ${e.message}`);
+      }
 
     let alreadyJoined = roomToJoin.players.find((x) => x.userId == userId);
 
