@@ -1,13 +1,13 @@
 import net from "net";
 
 const PORT = process.env.PORT || 5001;
-const host ="0.0.0.0";
+const host = process.env.HOST || "0.0.0.0";
 
 import { RoomControls, ChatControls } from "./Controls/index.js";
 
 import { InCommandCodes } from "./GlobalVars.js";
 
-import { InvalidCommandException } from "./GlobalVars.js";
+import { InvalidCommandException , InvalidActionException} from "./GlobalVars.js";
 
 const server = net.createServer();
 
@@ -31,53 +31,54 @@ server.listen(PORT, host, function () {
 server.on("connection", function (socket) {
     //console.log(socket); keep log cleaner for now
     console.log(socket.remoteAddress + " " + socket.remotePort)
-  let remoteAdress = socket.remoteAddress +" "+ socket.remotePort; // mind the scope 
-  console.log(`Connections from ${remoteAdress} established.`);
+    let remoteAdress = socket.remoteAddress + " " + socket.remotePort; // mind the scope 
+    console.log(`Connections from ${remoteAdress} established.`);
 
-  // Keep socket, so it can later be used to notify users about executed actions.
-  // (e.g. Player movement, Player joining room, etc.)
-  sockets.push(socket);
+    // Keep socket, so it can later be used to notify users about executed actions.
+    // (e.g. Player movement, Player joining room, etc.)
+    sockets.push(socket);
 
-  // Handling data from client.
+    // Handling data from client.
     socket.on("data", function (data) {
 
-    // Validating the command structure
-    validateCommandStructure(JSON.parse(data.toString())); //raw data Object = Buffer (type: "Buffer" data: [...] -> must be converted)
+        // Validating the command structure
 
-    let { userId, commandCode, props } = data;
+        let convertedData = JSON.parse(data.toString());  /*raw data Object = Buffer (type: "Buffer" data: [...] -> must be converted)*/
+        validateCommandStructure(convertedData);
 
-    /**
-     * Depending on the commandType parameter the appropriate
-     * action is executed.
-     */
-    try {
-      if (InCommandCodes.commandType === InCommandCodes.CreateRoom) {
-        let roomKey = roomControls.CreateRoom(userId);
-        socket.write(roomKey);
-      } else if (InCommandCodes.commandType === InCommandCodes.JoinRoom) {
-        roomControls.JoinRoom(userId, data.roomKey);
-        socket.write("Room joined successfully.");
-        // TODO: Notify other users currently in room.
-      } else if (
-        InCommandCodes.commandType === InCommandCodes.SendChatMessage
-      ) {
-        // TODO: Fix or remove, chat not that important right now.
-        chatControls.chatFunction(data, rooms, socket);
-      } else {
-        throw new Error("Unclear type of action.");
-      }
-    } catch (err) {
-      socket.write(err.toString());
-    }
-  });
+        let { userId, commandCode, props } = convertedData;
 
-  socket.on("error", function (error) {
-    console.log(error);
-  });
+        /**
+         * Depending on the commandType parameter the appropriate
+         * action is executed.
+         */
+        try {
+            if (commandCode === InCommandCodes.CreateRoom) {
+                let roomKey = roomControls.CreateRoom(userId);
+                socket.write(roomKey);
+            } else if (commandCode === InCommandCodes.JoinRoom) {
+                roomControls.JoinRoom(userId, data.roomKey);
+                socket.write("Room joined successfully.");
+                // TODO: Notify other users currently in room.
+            } else if (commandCode === InCommandCodes.SendChatMessage
+            ) {
+                // TODO: Fix or remove, chat not that important right now.
+                chatControls.chatFunction(data, rooms, socket);
+            } else {
+                throw new InvalidActionException("Unclear type of action.");
+            }
+        } catch (e) {
+            socket.write(`${e.name}: ${e.message}`);
+        }
+    });
 
-  socket.once("close", function (ev) {
-    console.log(ev);
-  });
+    socket.on("error", function (error) {
+        console.log(error);
+    });
+
+    socket.once("close", function (ev) {
+        console.log(ev);
+    });
 });
 
 /**
