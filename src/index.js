@@ -7,6 +7,8 @@ import { RoomControls, ChatControls } from "./Controls/index.js";
 
 import { InCommandCodes } from "./GlobalVars.js";
 
+import { InvalidCommandException } from "./GlobalVars.js";
+
 const server = net.createServer();
 
 const roomControls = new RoomControls();
@@ -41,7 +43,7 @@ server.on("connection", function (socket) {
     // Validating the command structure
     validateCommandStructure(data);
 
-    let { userId } = props;
+    let { userId, commandCode, props } = data;
 
     /**
      * Depending on the commandType parameter the appropriate
@@ -64,7 +66,7 @@ server.on("connection", function (socket) {
         throw new Error("Unclear type of action.");
       }
     } catch (err) {
-      socket.write(err);
+      socket.write(err.toString());
     }
   });
 
@@ -85,11 +87,15 @@ server.on("connection", function (socket) {
  * @param {*} includeUserId
  */
 const validateCommandStructure = (input, includeUserId = false) => {
-  if (
-    !input.hasOwnProperty("commandCode") ||
-    !input.hasOwnProperty("props") ||
-    (includeUserId && !input.hasOwnProperty("userId"))
-  ) {
-    throw "Invalid command structure";
-  }
+    try {
+        if (
+            !input.hasOwnProperty("commandCode") ||
+            !input.hasOwnProperty("props") ||
+            (includeUserId && !input.hasOwnProperty("userId"))
+        ) {
+            throw new InvalidCommandException("Invalid Argument");
+        }
+    } catch (e) {
+        console.log(`${e.name}: ${e.message}`);
+    }
 };
