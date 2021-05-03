@@ -27,8 +27,9 @@ server.listen(PORT, host, function () {
  * }
  */
 server.on("connection", function (socket) {
-  console.log(socket);
-  var remoteAdress = socket.remoteAdress + socket.remotePort;
+    //console.log(socket); keep log cleaner for now
+    console.log(socket.remoteAddress + " " + socket.remotePort)
+  let remoteAdress = socket.remoteAddress +" "+ socket.remotePort; // mind the scope 
   console.log(`Connections from ${remoteAdress} established.`);
 
   // Keep socket, so it can later be used to notify users about executed actions.
