@@ -1,4 +1,5 @@
 import randomstring from "randomstring";
+import { GameParameters, FieldConfigs } from "../GlobalVars";
 
 /**
  * Contains logic implementations, regarding
@@ -15,13 +16,22 @@ class RoomControls {
    * @param {*} userId The id of the user to create the room for.
    * @returns The roomKey of the created room.
    */
-  createRoom = (userId) => {
+  createRoom = (userId, numberOfPlayers) => {
     //TODO: Check if user already has room and close it.
+    if (
+      numberOfPlayers > GameParameters.MaxPlayers ||
+      numberOfPlayers < GameParameters.MinPlayers
+    ) {
+      throw new Error(
+        `Number of players needs to be between ${GameParameters.MinPlayers} and ${GameParameters.MaxPlayers}.`
+      );
+    }
 
     let room = {
       roomkey: randomstring.generate(5),
       createdBy: userId,
       players: [userId],
+      numberOfPlayers,
     };
 
     rooms.push(room);
@@ -52,17 +62,30 @@ class RoomControls {
     if (!alreadyJoined) {
       roomToJoin.players.push(userId);
     }
+
+    return roomToJoin;
   };
 
   /**
-   * Just used for debugging purposes.
-   * TODO: remove later.
-   * @param {*} rooms
+   * Starts the game with the given roomKey.
+   * @param {*} userId
+   * @param {*} roomKey
    */
-  displayRooms = (rooms) => {
-    for (let i = 0; i < rooms.length; i++) {
-      console.log(rooms[i][0]);
+  startGame = (userId, roomKey) => {
+    let room = this.findRoomByRoomKey(roomKey);
+
+    if (!room) {
+      throw new Error(`Room with roomKey ${roomKey} does not exist.`);
     }
+
+    if (room.createdBy !== userId) {
+      throw new Error("Only the owner of a room can start the game.");
+    }
+
+    let field = { ...FieldConfigs.TwoPlayers.Default };
+    room.gameField = field;
+
+    return room;
   };
 
   /**
@@ -72,6 +95,15 @@ class RoomControls {
    */
   findRoomByPlayer = (userId) => {
     return this.rooms.find((rooms) => rooms.players.includes(userId));
+  };
+
+  /**
+   * Returns the room with the given roomKey
+   * @param {*} roomKey The roomKey of the room to search.
+   * @returns The room the roomKey belongs to.
+   */
+  findRoomByRoomKey = (roomKey) => {
+    return this.rooms.find((rooms) => rooms.roomKey === roomKey);
   };
 
   /**
