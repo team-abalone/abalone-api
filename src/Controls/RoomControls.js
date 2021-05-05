@@ -96,23 +96,18 @@ class RoomControls {
           if (!room) {
               throw new RoomNotFoundException(roomKey);
           }
-      }
-      catch (e) {
-          socket.write(`${e.name}: ${e.message}`);
-      }
 
-      try {
           if (room.createdBy !== userId) {
               throw new NotRoomHostExeption();
 
           }
+
+          // Remove room from array.
+          this.rooms = this.rooms.filter((r) => r === room);
       }
       catch (e) {
           socket.write(`${e.name}: ${e.message}`);
       }
-
-    // Remove room from array.
-    this.rooms = this.rooms.filter((r) => r === room);
   };
 }
 
