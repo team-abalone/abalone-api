@@ -5,7 +5,7 @@ const host ="0.0.0.0";
 
 import { RoomControls, ChatControls } from "./Controls/index.js";
 
-import { InCommandCodes } from "./GlobalVars.js";
+import { InCommandCodes, OutCommandCodes } from "./GlobalVars.js";
 
 const server = net.createServer();
 
@@ -51,9 +51,42 @@ server.on("connection", function (socket) {
         let roomKey = roomControls.CreateRoom(userId);
         socket.write(roomKey);
       } else if (InCommandCodes.commandType === InCommandCodes.JoinRoom) {
-        roomControls.JoinRoom(userId, data.roomKey);
-        socket.write("Room joined successfully.");
-        // TODO: Notify other users currently in room.
+        let room = roomControls.JoinRoom(userId, data.roomKey);
+
+        // Notify current user about his successull join.
+        socket.write({ commandCode: OutCommandCodes.RoomJoinedSuccessfully });
+
+        // Notify other players about join of player.
+        let otherPlayers = sockets.find(
+          (s) => s.name in room.players && s.name !== socket.name
+        );
+
+        for (let i = 0; i < otherPlayers.length; i++) {
+          otherPlayers[i].write({
+            commandCode: OutCommandCodes.GameStarted,
+            props: { gameField: room.gameField },
+          });
+        }
+      } else if (InCommandCodes.commandType === InCommandCodes.StartGame) {
+        let room = roomControls.startGame(userId, data.roomKey);
+
+        // Notify creator of room about successful game start.
+        socket.write({
+          commandCode: OutCommandCodes.GameStarted,
+          props: { gameField: room.gameField },
+        });
+
+        // Notify creator of room about successful game start.
+        let otherPlayers = sockets.find(
+          (s) => s.name in room.players && s.name !== room.createdBy
+        );
+
+        for (let i = 0; i < otherPlayers.length; i++) {
+          otherPlayers[i].write({
+            commandCode: OutCommandCodes.GameStarted,
+            props: { gameField: room.gameField },
+          });
+        }
       } else if (
         InCommandCodes.commandType === InCommandCodes.SendChatMessage
       ) {
