@@ -20,4 +20,4 @@ function NotRoomHostException() {
     this.name = `NotRoomHostException`;
 }
 
-export { InvalidCommandException, InvalidActionException, RoomFullException, RoomNotFoundException }
+export { InvalidCommandException, InvalidActionException, RoomFullException, RoomNotFoundException, NotRoomHostException }
