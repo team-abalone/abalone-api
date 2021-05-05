@@ -1,5 +1,5 @@
 import randomstring from "randomstring";
-import { RoomNotFoundException, RoomFullException } from "../Exceptions.js"
+import { RoomNotFoundException, RoomFullException, NotRoomHostExeption } from "../Exceptions.js"
 
 /**
  * Contains logic implementations, regarding
@@ -90,15 +90,26 @@ class RoomControls {
    * @param {*} roomKey The roomKey of the room to close.
    */
   closeRoom = (userId, roomKey) => {
-    let room = this.rooms.find((r) => r.roomKey == roomKey);
+    let room = this.rooms.find((r) => r.roomkey == roomKey);
 
-    if (!room) {
-      throw new Error(`Room with key ${roomKey} could not be found.`);
-    }
+      try {
+          if (!room) {
+              throw new RoomNotFoundException(roomKey);
+          }
+      }
+      catch (e) {
+          socket.write(`${e.name}: ${e.message}`);
+      }
 
-    if (room.createdBy !== userId) {
-      throw new Error(`Cannot delete another players room.`);
-    }
+      try {
+          if (room.createdBy !== userId) {
+              throw new NotRoomHostExeption();
+
+          }
+      }
+      catch (e) {
+          socket.write(`${e.name}: ${e.message}`);
+      }
 
     // Remove room from array.
     this.rooms = this.rooms.filter((r) => r === room);

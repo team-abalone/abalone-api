@@ -15,5 +15,9 @@ function RoomFullException(key) {
     this.message = `Room with key ${key} is already full.`;
     this.name = "RoomFullException";
 }
+function NotRoomHostException() {
+    this.message = `You have no rights do delete another player's room.`;
+    this.name = `NotRoomHostException`;
+}
 
 export { InvalidCommandException, InvalidActionException, RoomFullException, RoomNotFoundException }
