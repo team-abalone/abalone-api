@@ -57,7 +57,7 @@ server.on("connection", function (socket) {
                 let roomKey = roomControls.createRoom(userId);
                 socket.write(roomKey);
             } else if (commandCode === InCommandCodes.JoinRoom) {
-                roomControls.JoinRoom(userId, props);
+                roomControls.joinRoom(userId, props, socket);
                 socket.write("Room joined successfully.");
                 // TODO: Notify other users currently in room.
             } else if (commandCode === InCommandCodes.SendChatMessage
@@ -78,6 +78,7 @@ server.on("connection", function (socket) {
 
     socket.once("close", function (ev) {
         console.log(ev);
+        console.log(`${remoteAdress} was closed.`);
     });
 });
 

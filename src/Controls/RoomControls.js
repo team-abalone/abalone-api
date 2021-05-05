@@ -39,7 +39,7 @@ class RoomControls {
    * @param {*} roomKey The roomKey of the room to join
    */
   joinRoom = (userId, roomKey) => {
-    let roomToJoin = this.rooms.find((r) => r.roomKey == roomKey);
+    let roomToJoin = this.rooms.find((r) => r.roomkey == roomKey);
 
       try {
           if (!roomToJoin) {
