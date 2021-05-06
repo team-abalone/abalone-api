@@ -5,7 +5,13 @@ const host = process.env.HOST || "0.0.0.0";
 
 import { RoomControls, ChatControls } from "./Controls/index.js";
 import { InCommandCodes, OutCommandCodes } from "./GlobalVars.js";
-import { InvalidCommandException , InvalidActionException} from "./Exceptions.js";
+
+import { v1 as uuidv1 } from "uuid";
+
+import {
+  InvalidCommandException,
+  InvalidActionException,
+} from "./Exceptions.js";
 
 const server = net.createServer();
 
@@ -27,106 +33,137 @@ server.listen(PORT, host, function () {
  * }
  */
 server.on("connection", function (socket) {
-    //console.log(socket); keep log cleaner for now
-    console.log(socket.remoteAddress + " " + socket.remotePort)
-    let remoteAdress = socket.remoteAddress + " " + socket.remotePort; // mind the scope 
-    console.log(`Connections from ${remoteAdress} established.`);
+  //console.log(socket); keep log cleaner for now
+  console.log(socket.remoteAddress + " " + socket.remotePort);
+  let remoteAdress = socket.remoteAddress + " " + socket.remotePort; // mind the scope
+  console.log(`Connections from ${remoteAdress} established.`);
 
-    // Keep socket, so it can later be used to notify users about executed actions.
-    // (e.g. Player movement, Player joining room, etc.)
-    sockets.push(socket);
+  // Keep socket, so it can later be used to notify users about executed actions.
+  // (e.g. Player movement, Player joining room, etc.)
+  sockets.push(socket);
 
-    // Handling data from client.
-    socket.on("data", function (data) {
-        let convertedData = JSON.parse(data.toString());  /*raw data Object = Buffer (type: "Buffer" data: [...] -> must be converted)*/
-        validateCommandStructure(convertedData);
+  // Handling data from client.
+  socket.on("data", function (data) {
+    let convertedData = JSON.parse(data.toString());
+    //validateCommandStructure(convertedData);
 
-        let { userId, commandCode, props } = convertedData;
+    let { userId, commandCode, props } = convertedData;
 
-        //Kommentiere ich hier während rebasing aus. Nach dem merge werde ich wieder alles testen, dann teste ich das nach und nach dazu
-        //Fix folgt in den nächsten stunden
+    if (userId && !socket.name) {
+      socket.name = userId;
+    }
 
-        /*
-        // Notify other players about join of player.
-        let otherPlayers = sockets.find(
-          (s) => s.name in room.players && s.name !== socket.name
+    /**
+     * Depending on the commandType parameter the appropriate
+     * action is executed.
+     */
+    try {
+      // Needs to be the first action the app calls, before everything else,
+      // assigns the user a uuid, that needs to be included on each request afterwards
+      if (commandCode === InCommandCodes.GetUserId) {
+        userId = uuidv1();
+
+        // For finding appropriate socket later.
+        socket.name = userId;
+
+        socket.write(
+          JSON.stringify({
+            commandCode: OutCommandCodes.IdInitialized,
+            userId,
+          })
+        );
+      } else if (commandCode === InCommandCodes.CreateRoom) {
+        let roomKey = roomControls.createRoom(userId, props.numberOfPlayers);
+
+        // Send roomKey to room creator.
+        socket.write(
+          JSON.stringify({
+            commandCode: OutCommandCodes.RoomCreated,
+            props: { roomKey },
+          })
+        );
+      } else if (commandCode === InCommandCodes.JoinRoom) {
+        let room = roomControls.joinRoom(userId, props.roomKey);
+
+        // Notify current user about his successful join.
+        socket.write(
+          JSON.stringify({
+            commandCode: OutCommandCodes.RoomJoined,
+            props: { ...room },
+          })
         );
 
-        for (let i = 0; i < otherPlayers.length; i++) {
-          otherPlayers[i].write({
+        // Notify other players in room about room join.
+        broadCastToRoom(
+          room,
+          userId,
+          JSON.stringify({
+            commandCode: OutCommandCodes.RoomJoinedOther,
+            props: { ...room },
+          })
+        );
+      } else if (commandCode === InCommandCodes.CloseRoom) {
+        let room = roomControls.closeRoom(userId, props.roomKey);
+
+        if (room) {
+          socket.write(
+            JSON.stringify({
+              commandCode: OutCommandCodes.RoomClosed,
+            })
+          );
+        }
+
+        // Notify other players in room about room closal.
+        broadCastToRoom(
+          room,
+          userId,
+          JSON.stringify({
+            commandCode: OutCommandCodes.RoomClosed,
+          })
+        );
+      } else if (commandCode === InCommandCodes.StartGame) {
+        let room = roomControls.startGame(userId, props.roomKey);
+
+        // Notify creator of room about successful game start.
+        socket.write(
+          JSON.stringify({
             commandCode: OutCommandCodes.GameStarted,
             props: { gameField: room.gameField },
-          });
-        }
-      } else if (InCommandCodes.commandType === InCommandCodes.StartGame) {
-        let room = roomControls.startGame(userId, data.roomKey);
-
-        // Notify creator of room about successful game start.
-        socket.write({
-          commandCode: OutCommandCodes.GameStarted,
-          props: { gameField: room.gameField },
-        });
-
-        // Notify creator of room about successful game start.
-        let otherPlayers = sockets.find(
-          (s) => s.name in room.players && s.name !== room.createdBy
+          })
         );
 
-        for (let i = 0; i < otherPlayers.length; i++) {
-          otherPlayers[i].write({
+        // Notify other players in room about game start.
+        broadCastToRoom(
+          room,
+          userId,
+          JSON.stringify({
             commandCode: OutCommandCodes.GameStarted,
             props: { gameField: room.gameField },
-          });
-        }
-      } else if (
-        InCommandCodes.commandType === InCommandCodes.SendChatMessage
-      ) {
+          })
+        );
+      } else if (commandCode === InCommandCodes.SendChatMessage) {
         // TODO: Fix or remove, chat not that important right now.
         chatControls.chatFunction(data, rooms, socket);
       } else {
         throw new Error("Unclear type of action.");
       }
     } catch (err) {
-      socket.write(err);
+      // Here we handle errors in case something fucks up.
+      // TODO: Send appropriate responses to clients.
+      console.error(err);
     }
-  });*/
+  });
 
+  socket.on("error", function (error) {
+    // socket.write(error);
+  });
 
-        /**
-         * Depending on the commandType parameter the appropriate
-         * action is executed.
-         */
-        try {
-            if (commandCode === InCommandCodes.CreateRoom) {
-                let roomKey = roomControls.createRoom(userId, props, socket);
-                socket.write(roomKey);
-            } else if (commandCode === InCommandCodes.JoinRoom) {
-                roomControls.joinRoom(userId, props, socket);
-                // TODO: Notify other users currently in room.
-            } else if (commandCode === InCommandCodes.LeaveRoom) {
-                roomControls.leaveRoom(userId, socket);
-                // TODO: Notify other users currently in room.
-            } else if (commandCode === InCommandCodes.SendChatMessage
-            ) {
-                // TODO: Fix or remove, chat not that important right now.
-                chatControls.chatFunction(data, rooms, socket);
-            } else {
-                throw new InvalidActionException("Unclear type of action.");
-            }
-        } catch (e) {
-            socket.write(`${e.name}: ${e.message}`);
-        }
-    });
-
-    socket.on("error", function (error) {
-        socket.write(error);
-    });
-
-    socket.once("close", function (ev) {
-        console.log(ev);
-        roomControls.leaveRoomWithSocket(socket);
-        console.log(`${remoteAdress} was closed.`);
-    });
+  socket.once("close", function (ev) {
+    // Probably not a good idea to close room with socket disconnect,
+    // as theoretically the client can loose connection and reconnect.
+    // Maybe implement a timeout of x seconds and close room after that.
+    //roomControls.leaveRoomWithSocket(socket);
+  });
 });
 
 /**
@@ -137,16 +174,42 @@ server.on("connection", function (socket) {
  * @param {*} includeUserId
  */
 
-const validateCommandStructure = (input, includeUserId = false) => {
-    try {
-        if (
-            !input.hasOwnProperty("commandCode") ||
-            !input.hasOwnProperty("props") ||
-            ((includeUserId == true) && !input.hasOwnProperty("userId"))
-        ) {
-            throw new InvalidCommandException("Invalid Argument");
-        }
-    } catch (e) {
-        console.log(`${e.name}: ${e.message}`);
+const validateCommandStructure = (
+  input,
+  includeUserId = false,
+  includeProps = false
+) => {
+  try {
+    if (
+      !input.hasOwnProperty("commandCode") ||
+      (includeProps && !input.hasOwnProperty("props")) ||
+      (includeUserId && !input.hasOwnProperty("userId"))
+    ) {
+      throw new InvalidCommandException("Invalid Argument");
     }
+  } catch (e) {
+    console.log(`${e.name}: ${e.message}`);
+  }
+};
+
+/**
+ * Broadcasting a payload to all players in room, excluding the user with the excludeUserId.
+ * @param {*} room The room to broadcast to.
+ * @param {*} excludeUserId The user to exclude.
+ * @param {*} payload The payload to broadcast.
+ */
+const broadCastToRoom = (room, excludeUserId, payload) => {
+  // Notify other players about game start.
+  let otherPlayers = sockets.filter(
+    (s) => room.players.includes(s.name) && s.name !== excludeUserId
+  );
+
+  otherPlayers.forEach((op) => {
+    op.write(
+      JSON.stringify({
+        commandCode: OutCommandCodes.RoomJoinedOther,
+        props: { ...room },
+      })
+    );
+  });
 };
