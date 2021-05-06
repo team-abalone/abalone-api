@@ -38,10 +38,14 @@ class RoomControls {
             exceptionThrown = true;
         }
         if (exceptionThrown == false) {
+            //Room maps userId to socket. Needed for broadcasting across room
             let room = {
                 "roomkey": randomstring.generate(5),
                 "createdBy": userId,
-                "players": [userId],
+                "players": [{
+                    "userId": userId,
+                    "socket" : socket
+                }],
                 "numberOfPlayers": numberOfPlayers,
             };
             this.rooms.push(room);
@@ -53,14 +57,13 @@ class RoomControls {
     /**
      * Enables the user with the given id to join a room with the given roomKey.
      * @param {*} userId The userId of the user to create the room for.
-     * @param {*} roomKey The roomKey of the room to join
+     * @param {*} roomKey The roomKey of the room to join     * 
      */
     joinRoom = (userId, roomKey, socket) => {
         let roomToJoin = this.rooms.find((r) => r.roomkey == roomKey);
         let exceptionThrown = false;
 
         try {
-
             if (!roomToJoin) {
                 throw new RoomNotFoundException(roomKey);
             }
@@ -77,7 +80,7 @@ class RoomControls {
             exceptionThrown = true;
         }
         if (exceptionThrown === false) {
-            roomToJoin.players.push(userId);
+            roomToJoin.players.push([ userId, socket ]);
             socket.write("Room joined successfully");
         } else {
             socket.write("Could not join room.");
@@ -133,7 +136,8 @@ class RoomControls {
      * @returns The room the user with the given id is in.
      */
     findRoomByPlayer = (userId) => {
-        return this.rooms.find((rooms) => rooms.players.includes(userId));
+        console.log(userId);
+        return this.rooms.find((rooms) => rooms.players.find((p) => p.userId === userId));
     };
 
     /**
@@ -146,8 +150,7 @@ class RoomControls {
         let room = this.rooms.find((r) => r.roomkey === roomKey);
         let exceptionThrown = false;
         let roomHost = room.createdBy;
-        //debug
-        console.log(roomHost);
+
         try {
             if (room === 'undefined') {
                 throw new RoomNotFoundException(roomKey);
@@ -183,7 +186,6 @@ class RoomControls {
             if (roomToLeave === 'undefined') {
                 throw new NotInRoomException(userId);
             }
-
         }
         catch (e) {
             socket.write(`${e.name}: ${e.message}`);
@@ -196,7 +198,7 @@ class RoomControls {
             let roomToLeaveKey = roomToLeave.roomkey;
             //debug line
             console.log(`key: ${roomToLeaveKey} \ncreatedBy: ${roomHost} \nNumber of players: ${amountPlayers}`);
-            roomToLeave = roomToLeave.players.filter((r) => r.userId === userId);
+            roomToLeave = roomToLeave.players.filter((p) => p[0] === userId);
             //TODO: broadcast to players in room
             console.log(`Room with key ${roomToLeaveKey}: \n${userId} has left`);
 
@@ -210,6 +212,9 @@ class RoomControls {
             }
         }
     };
+    broadcastToRoom(userId) {
+
+    }
 }
 
   

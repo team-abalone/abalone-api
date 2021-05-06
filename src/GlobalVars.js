@@ -4,8 +4,7 @@ const InCommandCodes = {
     "JoinRoom": "30",
     "CloseRoom": "40",
     "LeaveRoom": "50",
-    "SendChatMessage": "60",
-    "DisplayRoom" : "100"
+    "SendChatMessage": "60"
 };
 
 const OutCommandCodes = {

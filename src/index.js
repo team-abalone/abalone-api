@@ -43,8 +43,8 @@ server.on("connection", function (socket) {
 
         let { userId, commandCode, props } = convertedData;
 
-     //Kommentiere ich hier während rebasing aus. Nach dem merge werde ich wieder alles testen, dann teste ich das nach und nach dazu
-     //Fix folgt in den nächsten stunden
+        //Kommentiere ich hier während rebasing aus. Nach dem merge werde ich wieder alles testen, dann teste ich das nach und nach dazu
+        //Fix folgt in den nächsten stunden
 
         /*
         // Notify other players about join of player.
@@ -98,17 +98,17 @@ server.on("connection", function (socket) {
          */
         try {
             if (commandCode === InCommandCodes.CreateRoom) {
-                let roomKey = roomControls.createRoom(userId,props,socket);
+                let roomKey = roomControls.createRoom(userId, props, socket);
                 socket.write(roomKey);
             } else if (commandCode === InCommandCodes.JoinRoom) {
                 roomControls.joinRoom(userId, props, socket);
                 // TODO: Notify other users currently in room.
             } else if (commandCode === InCommandCodes.LeaveRoom) {
-                roomControls.leaveRoom(userId,socket);
+                roomControls.leaveRoom(userId, socket);
                 // TODO: Notify other users currently in room.
             } else if (commandCode === InCommandCodes.SendChatMessage
-            ) {                
-// TODO: Fix or remove, chat not that important right now.
+            ) {
+                // TODO: Fix or remove, chat not that important right now.
                 chatControls.chatFunction(data, rooms, socket);
             } else {
                 throw new InvalidActionException("Unclear type of action.");
