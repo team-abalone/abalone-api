@@ -100,13 +100,19 @@ class RoomControls {
      */
     startGame = (userId, roomKey) => {
         let room = this.findRoomByRoomKey(roomKey);
+        let exceptionThrown = false;
+        try {
+            if (!room) {
+                throw new RoomNotFoundException(roomKey);
+            }
 
-        if (!room) {
-            throw new Error(`Room with roomKey ${roomKey} does not exist.`);
+            if (room.createdBy !== userId) {
+                throw new NotRoomHostException();
+            }
         }
-
-        if (room.createdBy !== userId) {
-            throw new Error("Only the owner of a room can start the game.");
+        catch (e) {
+            //TODO: write to socket
+            console.log(`${e.name}: ${e.message}`);
         }
 
         let field = { ...FieldConfigs.TwoPlayers.Default };
