@@ -5,22 +5,27 @@ const InCommandCodes = {
     "CloseRoom": "40",
     "LeaveRoom": "50",
     "SendChatMessage": "60",
+    "DisplayRoom" : "100"
 };
 
 const OutCommandCodes = {
-  GameStarted: 10,
-  RoomJoinedSuccessfully: 20,
+  "GameStarted": "10",
+  "RoomJoinedSuccessfully": "20"
 };
 
+/** 
+ *  Würde ich in 'props' mitschicken bei Raumerstellung
+ *  
 const GameParameters = {
+ 
   MinPlayers: 2,
   MaxPlayers: 6,
   DefaultRadius: 5,
 };
-
+*/
 const InitialFieldTypes = {
-  Default: 10,
-  GermanDaisy: 20,
+  "Default": "10",
+  "GermanDaisy": "20"
 };
 
 /**
@@ -32,7 +37,7 @@ const InitialFieldTypes = {
  */
 const FieldConfigs = {
   TwoPlayers: {
-    Default: [
+    "Default": [
       [1, 1, 1, 1, 1],
       [1, 1, 1, 1, 1, 1],
       [0, 0, 1, 1, 1, 0, 0],
@@ -43,7 +48,7 @@ const FieldConfigs = {
       [2, 2, 2, 2, 2, 2],
       [2, 2, 2, 2, 2],
     ],
-    GermanDaisy: [
+    "GermanDaisy": [
       [0, 0, 0, 0, 0],
       [1, 1, 0, 0, 2, 2],
       [1, 1, 1, 0, 2, 2, 2],
@@ -60,7 +65,7 @@ const FieldConfigs = {
 export {
   InCommandCodes,
   OutCommandCodes,
-  GameParameters,
+  //GameParameters,
   InitialFieldTypes,
   FieldConfigs,
 };

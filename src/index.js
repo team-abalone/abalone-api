@@ -4,9 +4,7 @@ const PORT = process.env.PORT || 5001;
 const host = process.env.HOST || "0.0.0.0";
 
 import { RoomControls, ChatControls } from "./Controls/index.js";
-
 import { InCommandCodes, OutCommandCodes } from "./GlobalVars.js";
-
 import { InvalidCommandException , InvalidActionException} from "./Exceptions.js";
 
 const server = net.createServer();
@@ -40,10 +38,6 @@ server.on("connection", function (socket) {
 
     // Handling data from client.
     socket.on("data", function (data) {
-
-        // Validating the command structure
-
-
         let convertedData = JSON.parse(data.toString());  /*raw data Object = Buffer (type: "Buffer" data: [...] -> must be converted)*/
         validateCommandStructure(convertedData);
 
@@ -51,7 +45,8 @@ server.on("connection", function (socket) {
 
      //Kommentiere ich hier während rebasing aus. Nach dem merge werde ich wieder alles testen, dann teste ich das nach und nach dazu
      //Fix folgt in den nächsten stunden
-    /*
+
+        /*
         // Notify other players about join of player.
         let otherPlayers = sockets.find(
           (s) => s.name in room.players && s.name !== socket.name
@@ -103,7 +98,7 @@ server.on("connection", function (socket) {
          */
         try {
             if (commandCode === InCommandCodes.CreateRoom) {
-                let roomKey = roomControls.createRoom(userId,socket);
+                let roomKey = roomControls.createRoom(userId,props,socket);
                 socket.write(roomKey);
             } else if (commandCode === InCommandCodes.JoinRoom) {
                 roomControls.joinRoom(userId, props, socket);
@@ -112,8 +107,8 @@ server.on("connection", function (socket) {
                 roomControls.leaveRoom(userId,socket);
                 // TODO: Notify other users currently in room.
             } else if (commandCode === InCommandCodes.SendChatMessage
-            ) {
-                // TODO: Fix or remove, chat not that important right now.
+            ) {                
+// TODO: Fix or remove, chat not that important right now.
                 chatControls.chatFunction(data, rooms, socket);
             } else {
                 throw new InvalidActionException("Unclear type of action.");
@@ -124,12 +119,11 @@ server.on("connection", function (socket) {
     });
 
     socket.on("error", function (error) {
-        console.log(error);
+        socket.write(error);
     });
 
     socket.once("close", function (ev) {
         console.log(ev);
-        //roomControls.leaveRoom(userId, socket);
         console.log(`${remoteAdress} was closed.`);
     });
 });

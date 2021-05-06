@@ -31,4 +31,8 @@ function AlreadyInRoomException(key) {
     this.message = `You are currently in a room with the key '${key}'\n`;
     this.name = `AlreadyInRoomException`;
 }
-export { InvalidCommandException, InvalidActionException, RoomFullException, RoomNotFoundException, NotRoomHostException, NotInRoomException, AlreadyInRoomException }
+function BadRequestException() {
+    this.message = `Request structure incorrect.`;
+    this.name = `BadRequestException`;
+}
+export { InvalidCommandException, InvalidActionException, RoomFullException, RoomNotFoundException, NotRoomHostException, NotInRoomException, AlreadyInRoomException, BadRequestException }

@@ -1,7 +1,7 @@
 import randomstring from "randomstring";
 
-import { RoomNotFoundException, RoomFullException, NotRoomHostException, NotInRoomException, AlreadyInRoomException } from "../Exceptions.js";
-import { GameParameters, FieldConfigs } from "../GlobalVars";
+import { RoomNotFoundException, RoomFullException, NotRoomHostException, NotInRoomException, AlreadyInRoomException, BadRequestException } from "../Exceptions.js";
+import { FieldConfigs } from "../GlobalVars.js";
 
 
 /**
@@ -16,29 +16,38 @@ class RoomControls {
     }
 
 
-  /**
-   * Creates a new room for the user with the given id
-   * and returns it.
-   * @param {*} userId The id of the user to create the room for.
-   * @returns The roomKey of the created room.
-   */
-  createRoom = (userId, numberOfPlayers,socket) => {
-    //TODO: Check if user already has room and close it.
-    if (
-      numberOfPlayers > GameParameters.MaxPlayers ||
-      numberOfPlayers < GameParameters.MinPlayers
-    ) {
-      throw new Error(
-        `Number of players needs to be between ${GameParameters.MinPlayers} and ${GameParameters.MaxPlayers}.`
-      );
+    /**
+     * Creates a new room for the user with the given id
+     * and returns it.
+     * @param {*} userId The id of the user to create the room for.
+     * @returns The roomKey of the created room.
+     */
+    createRoom = (userId, numberOfPlayers, socket) => {
+        //TODO: Check if user already has room and close it.
+        let exceptionThrown = false;
+        try {
+            if (this.findRoomByPlayer(userId) != null) {
+                throw new AlreadyInRoomException(this.findRoomByPlayer(userId).roomkey)
+            }
+            if (isNaN(numberOfPlayers)) {
+                throw new BadRequestException();
+            }
+        }
+        catch (e) {
+            socket.write(`${e.name}: ${e.message}\n`);
+            exceptionThrown = true;
+        }
+        if (exceptionThrown == false) {
+            let room = {
+                "roomkey": randomstring.generate(5),
+                "createdBy": userId,
+                "players": [userId],
+                "numberOfPlayers": numberOfPlayers,
+            };
+            this.rooms.push(room);
+            return room.roomkey;
+        }
     }
-
-    let room = {
-      "roomkey": randomstring.generate(5),
-      "createdBy": userId,
-      "players": [userId],
-      "numberOfPlayers":numberOfPlayers,
-    };
 
 
     /**
@@ -51,13 +60,13 @@ class RoomControls {
         let exceptionThrown = false;
 
         try {
-            
+
             if (!roomToJoin) {
                 throw new RoomNotFoundException(roomKey);
             }
 
-            if (roomToJoin.players > 4) {
-                throw new RoomFullException(roomToJoin.roomKey);
+            if (roomToJoin.players.length >= roomToJoin.numberOfPlayers) {
+                throw new RoomFullException(roomToJoin.roomkey);
             }
 
             if (this.findRoomByPlayer(userId)) {
@@ -73,42 +82,38 @@ class RoomControls {
         } else {
             socket.write("Could not join room.");
         }
-  };
+    };
 
-  /**
-   * Starts the game with the given roomKey.
-   * @param {*} userId
-   * @param {*} roomKey
-   */
-  startGame = (userId, roomKey) => {
-    let room = this.findRoomByRoomKey(roomKey);
+    /**
+     * Starts the game with the given roomKey.
+     * @param {*} userId
+     * @param {*} roomKey
+     */
+    startGame = (userId, roomKey) => {
+        let room = this.findRoomByRoomKey(roomKey);
 
-    if (!room) {
-      throw new Error(`Room with roomKey ${roomKey} does not exist.`);
-    }
+        if (!room) {
+            throw new Error(`Room with roomKey ${roomKey} does not exist.`);
+        }
 
-    if (room.createdBy !== userId) {
-      throw new Error("Only the owner of a room can start the game.");
-    }
+        if (room.createdBy !== userId) {
+            throw new Error("Only the owner of a room can start the game.");
+        }
 
-    let field = { ...FieldConfigs.TwoPlayers.Default };
-    room.gameField = field;
+        let field = { ...FieldConfigs.TwoPlayers.Default };
+        room.gameField = field;
 
-    return room;
-  };
-
-
-  /**
-   * Returns the room with the given roomKey
-   * @param {*} roomKey The roomKey of the room to search.
-   * @returns The room the roomKey belongs to.
-   */
-  findRoomByRoomKey = (roomKey) => {
-    return this.rooms.find((rooms) => rooms.roomkey === roomKey);
-  };
-  
+        return room;
+    };
 
 
+    /**
+     * Returns the room with the given roomKey
+     * @param {*} roomKey The roomKey of the room to search.
+     * @returns The room the roomKey belongs to.
+     */
+    findRoomByRoomKey = (roomKey) => {
+        return this.rooms.find((rooms) => rooms.roomkey === roomKey);
     };
 
     /**
@@ -137,7 +142,7 @@ class RoomControls {
      * @param {*} userId The userId of the user, that made the request.
      * @param {*} roomKey The roomKey of the room to close.
      */
-    closeRoom = (userId, roomKey,socket) => {
+    closeRoom = (userId, roomKey, socket) => {
         let room = this.rooms.find((r) => r.roomkey === roomKey);
         let exceptionThrown = false;
         let roomHost = room.createdBy;
@@ -150,7 +155,7 @@ class RoomControls {
             if (room.createdBy !== userId) {
                 throw new NotRoomHostException();
 
-            }            
+            }
         }
         catch (e) {
             socket.write(`${e.name}: ${e.message}`);
@@ -176,9 +181,9 @@ class RoomControls {
             roomToLeave = this.findRoomByPlayer(userId);
 
             if (roomToLeave === 'undefined') {
-                throw new NotInRoomException(userId);                
+                throw new NotInRoomException(userId);
             }
-           
+
         }
         catch (e) {
             socket.write(`${e.name}: ${e.message}`);
@@ -197,15 +202,15 @@ class RoomControls {
 
             //If host leaves, the room should close
             if (roomHost === userId) {
-                this.closeRoom(userId, roomToLeaveKey,socket);
+                this.closeRoom(userId, roomToLeaveKey, socket);
             }
             //If no player remains, the room should close as well
             else if (amountPlayers <= 1) {
-                this.closeRoom(userId, roomToLeaveKey,socket);
+                this.closeRoom(userId, roomToLeaveKey, socket);
             }
         }
     };
-    
 }
+
   
 export default RoomControls;
