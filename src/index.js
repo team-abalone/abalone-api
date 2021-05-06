@@ -5,7 +5,7 @@ const host = process.env.HOST || "0.0.0.0";
 
 import { RoomControls, ChatControls } from "./Controls/index.js";
 
-import { InCommandCodes } from "./GlobalVars.js";
+import { InCommandCodes, OutCommandCodes } from "./GlobalVars.js";
 
 import { InvalidCommandException , InvalidActionException} from "./Exceptions.js";
 
@@ -43,10 +43,59 @@ server.on("connection", function (socket) {
 
         // Validating the command structure
 
+
         let convertedData = JSON.parse(data.toString());  /*raw data Object = Buffer (type: "Buffer" data: [...] -> must be converted)*/
         validateCommandStructure(convertedData);
 
         let { userId, commandCode, props } = convertedData;
+
+     //Kommentiere ich hier während rebasing aus. Nach dem merge werde ich wieder alles testen, dann teste ich das nach und nach dazu
+     //Fix folgt in den nächsten stunden
+    /*
+        // Notify other players about join of player.
+        let otherPlayers = sockets.find(
+          (s) => s.name in room.players && s.name !== socket.name
+        );
+
+        for (let i = 0; i < otherPlayers.length; i++) {
+          otherPlayers[i].write({
+            commandCode: OutCommandCodes.GameStarted,
+            props: { gameField: room.gameField },
+          });
+        }
+      } else if (InCommandCodes.commandType === InCommandCodes.StartGame) {
+        let room = roomControls.startGame(userId, data.roomKey);
+
+        // Notify creator of room about successful game start.
+        socket.write({
+          commandCode: OutCommandCodes.GameStarted,
+          props: { gameField: room.gameField },
+        });
+
+        // Notify creator of room about successful game start.
+        let otherPlayers = sockets.find(
+          (s) => s.name in room.players && s.name !== room.createdBy
+        );
+
+        for (let i = 0; i < otherPlayers.length; i++) {
+          otherPlayers[i].write({
+            commandCode: OutCommandCodes.GameStarted,
+            props: { gameField: room.gameField },
+          });
+        }
+      } else if (
+        InCommandCodes.commandType === InCommandCodes.SendChatMessage
+      ) {
+        // TODO: Fix or remove, chat not that important right now.
+        chatControls.chatFunction(data, rooms, socket);
+      } else {
+        throw new Error("Unclear type of action.");
+      }
+    } catch (err) {
+      socket.write(err);
+    }
+  });*/
+
 
         /**
          * Depending on the commandType parameter the appropriate

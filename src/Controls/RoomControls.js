@@ -1,37 +1,45 @@
 import randomstring from "randomstring";
-import { RoomNotFoundException, RoomFullException, NotRoomHostException, NotInRoomException, AlreadyInRoomException } from "../Exceptions.js"
+
+import { RoomNotFoundException, RoomFullException, NotRoomHostException, NotInRoomException, AlreadyInRoomException } from "../Exceptions.js";
+import { GameParameters, FieldConfigs } from "../GlobalVars";
+
 
 /**
  * Contains logic implementations, regarding
  * all actions around rooms.
  */
 class RoomControls {
+
     rooms;
     constructor() {
         this.rooms = [];
     }
 
-    /**
-     * Creates a new room for the user with the given id
-     * and returns it.
-     * @param {*} userId The id of the user to create the room for.
-     * @returns The roomKey of the created room.
-     */
 
+  /**
+   * Creates a new room for the user with the given id
+   * and returns it.
+   * @param {*} userId The id of the user to create the room for.
+   * @returns The roomKey of the created room.
+   */
+  createRoom = (userId, numberOfPlayers,socket) => {
+    //TODO: Check if user already has room and close it.
+    if (
+      numberOfPlayers > GameParameters.MaxPlayers ||
+      numberOfPlayers < GameParameters.MinPlayers
+    ) {
+      throw new Error(
+        `Number of players needs to be between ${GameParameters.MinPlayers} and ${GameParameters.MaxPlayers}.`
+      );
+    }
 
-    createRoom = (userId, socket) => {
-        //TODO: Check if user already has room and close it.
-
-        let room = {
-            "roomkey": randomstring.generate(5),
-            "createdBy": userId,
-            "players": [userId]
-        };
-
-        this.rooms.push(room);
-
-        return room.roomkey;
+    let room = {
+      "roomkey": randomstring.generate(5),
+      "createdBy": userId,
+      "players": [userId],
+      "numberOfPlayers":numberOfPlayers,
     };
+
 
     /**
      * Enables the user with the given id to join a room with the given roomKey.
@@ -65,6 +73,41 @@ class RoomControls {
         } else {
             socket.write("Could not join room.");
         }
+  };
+
+  /**
+   * Starts the game with the given roomKey.
+   * @param {*} userId
+   * @param {*} roomKey
+   */
+  startGame = (userId, roomKey) => {
+    let room = this.findRoomByRoomKey(roomKey);
+
+    if (!room) {
+      throw new Error(`Room with roomKey ${roomKey} does not exist.`);
+    }
+
+    if (room.createdBy !== userId) {
+      throw new Error("Only the owner of a room can start the game.");
+    }
+
+    let field = { ...FieldConfigs.TwoPlayers.Default };
+    room.gameField = field;
+
+    return room;
+  };
+
+
+  /**
+   * Returns the room with the given roomKey
+   * @param {*} roomKey The roomKey of the room to search.
+   * @returns The room the roomKey belongs to.
+   */
+  findRoomByRoomKey = (roomKey) => {
+    return this.rooms.find((rooms) => rooms.roomkey === roomKey);
+  };
+  
+
 
     };
 
