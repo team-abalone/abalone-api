@@ -124,6 +124,7 @@ server.on("connection", function (socket) {
 
     socket.once("close", function (ev) {
         console.log(ev);
+        roomControls.leaveRoomWithSocket(socket);
         console.log(`${remoteAdress} was closed.`);
     });
 });

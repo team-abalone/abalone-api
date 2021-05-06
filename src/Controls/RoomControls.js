@@ -219,6 +219,23 @@ class RoomControls {
             }
         }
     };
+
+    /**
+     * For automatic leaving when socket is closed
+     * @param {*} socket - Required to get corresponding room
+     */
+    leaveRoomWithSocket = (socket) => {
+        let userId;
+        for (let i=0; i < this.rooms.length; i++) {
+            for (let j = 0; j < this.rooms[i].players.length; j++) {
+                if (this.rooms[i].players[j].socket === socket) {
+                    userId = this.rooms[i].players[j].userId;
+                }
+            }
+        }
+        this.leaveRoom(userId, socket);
+    }
+
     /**
      * Subroutine used for server to send messages across a room.
      * @param {*} room - To get sockets of all players
