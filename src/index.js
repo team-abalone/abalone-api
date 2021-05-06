@@ -80,6 +80,7 @@ server.on("connection", function (socket) {
 
     socket.once("close", function (ev) {
         console.log(ev);
+        //roomControls.leaveRoom(userId, socket);
         console.log(`${remoteAdress} was closed.`);
     });
 });

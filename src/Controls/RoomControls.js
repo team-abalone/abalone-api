@@ -97,8 +97,11 @@ class RoomControls {
     closeRoom = (userId, roomKey,socket) => {
         let room = this.rooms.find((r) => r.roomkey === roomKey);
         let exceptionThrown = false;
+        let roomHost = room.createdBy;
+        //debug
+        console.log(roomHost);
         try {
-            if (!room) {
+            if (room === 'undefined') {
                 throw new RoomNotFoundException(roomKey);
             }
             if (room.createdBy !== userId) {
@@ -141,19 +144,21 @@ class RoomControls {
 
         if (exceptionThrown == false) {
             let amountPlayers = roomToLeave.players.length;
+            let roomHost = roomToLeave.createdBy;
+            let roomToLeaveKey = roomToLeave.roomkey;
             //debug line
-            console.log(`key: ${roomToLeave.roomkey} \ncreatedBy: ${roomToLeave.createdBy} \nNumber of players: ${amountPlayers}`);
+            console.log(`key: ${roomToLeaveKey} \ncreatedBy: ${roomHost} \nNumber of players: ${amountPlayers}`);
             roomToLeave = roomToLeave.players.filter((r) => r.userId === userId);
             //TODO: broadcast to players in room
-            console.log(`Room with key ${roomToLeave.roomkey}: \n${userId} has left`);
+            console.log(`Room with key ${roomToLeaveKey}: \n${userId} has left`);
 
             //If host leaves, the room should close
-            if (roomToLeave.createdBy === userId) {
-                this.closeRoom(userId, roomToLeave.roomkey,socket);
+            if (roomHost === userId) {
+                this.closeRoom(userId, roomToLeaveKey,socket);
             }
             //If no player remains, the room should close as well
             else if (amountPlayers <= 1) {
-                this.closeRoom(userId, roomToLeave.roomkey,socket);
+                this.closeRoom(userId, roomToLeaveKey,socket);
             }
         }
     };
