@@ -86,8 +86,8 @@ class RoomControls {
                     "socket": socket
                 }
             );
-            socket.write("Room joined successfully");
-            this.broadcastToRoom(roomToJoin, "test");
+            
+            this.broadcastToRoom(roomToJoin, `\n${userId} joined the room.`);
         } else {
             socket.write("Could not join room.");
         }
@@ -204,9 +204,10 @@ class RoomControls {
             let roomToLeaveKey = roomToLeave.roomkey;
             //debug line
             console.log(`key: ${roomToLeaveKey} \ncreatedBy: ${roomHost} \nNumber of players: ${amountPlayers}`);
-            roomToLeave = roomToLeave.players.filter((p) => p[0] === userId);
+            this.broadcastToRoom(roomToLeave, `\n${userId} has left`);
+            roomToLeave = roomToLeave.players.filter((p) => p.userId === userId);
             //TODO: broadcast to players in room
-            console.log(`Room with key ${roomToLeaveKey}: \n${userId} has left`);
+            
 
             //If host leaves, the room should close
             if (roomHost === userId) {
