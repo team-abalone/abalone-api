@@ -80,8 +80,14 @@ class RoomControls {
             exceptionThrown = true;
         }
         if (exceptionThrown === false) {
-            roomToJoin.players.push([ userId, socket ]);
+            roomToJoin.players.push(
+                {
+                    "userId": userId,
+                    "socket": socket
+                }
+            );
             socket.write("Room joined successfully");
+            this.broadcastToRoom(roomToJoin, "test");
         } else {
             socket.write("Could not join room.");
         }
@@ -212,9 +218,18 @@ class RoomControls {
             }
         }
     };
-    broadcastToRoom(userId) {
-
+    /**
+     * Subroutine used for server to send messages across a room.
+     * @param {*} room - To get sockets of all players
+     * @param {*} message - Message that is broadcastet among players whithin a room
+     */
+    broadcastToRoom = (room, message) => {
+        for (let i = 0; i < room.players.length; i++) {
+            room.players[i].socket.write(message);
+        }
     }
+   
+    
 }
 
   
