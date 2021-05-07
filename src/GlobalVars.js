@@ -4,11 +4,17 @@ const InCommandCodes = {
   JoinRoom: 30,
   CloseRoom: 40,
   SendChatMessage: 50,
+  GetUserId: 60,
+  StartGame: 70,
 };
 
 const OutCommandCodes = {
-  GameStarted: 10,
-  RoomJoinedSuccessfully: 20,
+  IdInitialized: 10,
+  GameStarted: 20,
+  RoomJoined: 30,
+  RoomCreated: 40,
+  RoomClosed: 50,
+  RoomJoinedOther: 60,
 };
 
 const GameParameters = {

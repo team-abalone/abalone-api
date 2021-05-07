@@ -1,14 +1,24 @@
 import randomstring from "randomstring";
-import { GameParameters, FieldConfigs } from "../GlobalVars";
+
+import {
+  RoomNotFoundException,
+  RoomFullException,
+  NotRoomHostException,
+  NotInRoomException,
+  AlreadyInRoomException,
+  InvalidCommandException,
+} from "../Exceptions.js";
+import { FieldConfigs } from "../GlobalVars.js";
 
 /**
  * Contains logic implementations, regarding
  * all actions around rooms.
  */
 class RoomControls {
-  rooms = [];
-
-  constructor() {}
+  rooms;
+  constructor() {
+    this.rooms = [];
+  }
 
   /**
    * Creates a new room for the user with the given id
@@ -17,49 +27,48 @@ class RoomControls {
    * @returns The roomKey of the created room.
    */
   createRoom = (userId, numberOfPlayers) => {
-    //TODO: Check if user already has room and close it.
-    if (
-      numberOfPlayers > GameParameters.MaxPlayers ||
-      numberOfPlayers < GameParameters.MinPlayers
-    ) {
-      throw new Error(
-        `Number of players needs to be between ${GameParameters.MinPlayers} and ${GameParameters.MaxPlayers}.`
-      );
+    let existing = this.findRoomByPlayer(userId);
+
+    if (existing) {
+      throw new AlreadyInRoomException(existing.roomkey);
+    }
+
+    if (isNaN(numberOfPlayers)) {
+      throw new InvalidCommandException();
     }
 
     let room = {
-      roomkey: randomstring.generate(5),
+      roomKey: randomstring.generate(5),
       createdBy: userId,
       players: [userId],
-      numberOfPlayers,
+      numberOfPlayers: numberOfPlayers,
     };
 
-    rooms.push(room);
-
-    return room.roomkey;
+    this.rooms.push(room);
+    return room.roomKey;
   };
 
   /**
    * Enables the user with the given id to join a room with the given roomKey.
    * @param {*} userId The userId of the user to create the room for.
-   * @param {*} roomKey The roomKey of the room to join
+   * @param {*} roomKey The roomKey of the room to join     *
    */
   joinRoom = (userId, roomKey) => {
     let roomToJoin = this.rooms.find((r) => r.roomKey == roomKey);
 
     if (!roomToJoin) {
-      throw new Error(
-        `Room with key ${roomToJoin.roomKey} could not be found. Make sure to enter a valid key.`
-      );
+      throw new RoomNotFoundException(roomKey);
     }
 
-    if (roomToJoin.players > 4) {
-      throw new Error(`Room with key ${roomToJoin.roomKey} is already full.`);
+    if (roomToJoin.players.length >= roomToJoin.numberOfPlayers) {
+      throw new RoomFullException(roomToJoin.roomkey);
     }
 
-    let alreadyJoined = roomToJoin.players.find((x) => x.userId == userId);
+    if (roomToJoin.players.includes(userId)) {
+      throw new AlreadyInRoomException(this.findRoomByPlayer(userId).roomkey);
+    }
 
-    if (!alreadyJoined) {
+    if (!roomToJoin.players.includes(userId)) {
       roomToJoin.players.push(userId);
     }
 
@@ -75,26 +84,18 @@ class RoomControls {
     let room = this.findRoomByRoomKey(roomKey);
 
     if (!room) {
-      throw new Error(`Room with roomKey ${roomKey} does not exist.`);
+      throw new RoomNotFoundException(roomKey);
     }
 
     if (room.createdBy !== userId) {
-      throw new Error("Only the owner of a room can start the game.");
+      throw new NotRoomHostException();
     }
 
+    // For now we always return the same field.
     let field = { ...FieldConfigs.TwoPlayers.Default };
-    room.gameField = field;
+    room.gameField = { ...field };
 
     return room;
-  };
-
-  /**
-   * Returns the room the user with the given id is currently in.
-   * @param {*} userId The id of the user to search the room for.
-   * @returns The room the user with the given id is in.
-   */
-  findRoomByPlayer = (userId) => {
-    return this.rooms.find((rooms) => rooms.players.includes(userId));
   };
 
   /**
@@ -107,24 +108,58 @@ class RoomControls {
   };
 
   /**
+   * Returns the room the user with the given id is currently in.
+   * @param {*} userId The id of the user to search the room for.
+   * @returns The room the user with the given id is in.
+   */
+  findRoomByPlayer = (userId) => {
+    return this.rooms.find((rooms) =>
+      rooms.players.find((p) => p.userId === userId)
+    );
+  };
+
+  /**
    * Closes the room with the given roomKey, provided that the userId
    * matches the creators userId.
    * @param {*} userId The userId of the user, that made the request.
    * @param {*} roomKey The roomKey of the room to close.
    */
   closeRoom = (userId, roomKey) => {
-    let room = this.rooms.find((r) => r.roomKey == roomKey);
+    let room = this.rooms.find((r) => r.roomKey === roomKey);
 
     if (!room) {
-      throw new Error(`Room with key ${roomKey} could not be found.`);
+      throw new RoomNotFoundException(roomKey);
     }
 
     if (room.createdBy !== userId) {
-      throw new Error(`Cannot delete another players room.`);
+      throw new NotRoomHostException();
     }
 
     // Remove room from array.
-    this.rooms = this.rooms.filter((r) => r === room);
+    this.rooms = this.rooms.filter((r) => (r === r.roomKey) === roomKey);
+    console.log(`Room with key ${roomKey} was deleted.`);
+
+    return room;
+  };
+
+  /**
+   * Lets player leave the room
+   * Calls closeRoom() if room is empty after leaving or if the host leaves
+   * @param {*} userId The userId; needed for findRoomByPlayer()-call
+   */
+  leaveRoom = (userId) => {
+    let roomToLeave = this.findRoomByPlayer(userId);
+
+    if (!roomToLeave) {
+      throw new NotInRoomException(userId);
+    }
+
+    let { createdBy, roomKey, players } = roomToLeave;
+
+    //If host leaves, the room should close.
+    if (createdBy === userId || players.length < 1) {
+      this.closeRoom(userId, roomKey);
+    }
   };
 }
 
