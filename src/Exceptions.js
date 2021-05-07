@@ -59,4 +59,6 @@ export {
   NotRoomHostException,
   NotInRoomException,
   AlreadyInRoomException,
+  RoomException,
+  ServerException,
 };
