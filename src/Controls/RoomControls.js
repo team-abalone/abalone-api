@@ -6,7 +6,7 @@ import {
   NotRoomHostException,
   NotInRoomException,
   AlreadyInRoomException,
-  BadRequestException,
+  InvalidCommandException,
 } from "../Exceptions.js";
 import { FieldConfigs } from "../GlobalVars.js";
 
@@ -34,7 +34,7 @@ class RoomControls {
     }
 
     if (isNaN(numberOfPlayers)) {
-      throw new BadRequestException();
+      throw new InvalidCommandException();
     }
 
     let room = {

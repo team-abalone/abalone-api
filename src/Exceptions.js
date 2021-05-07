@@ -1,42 +1,57 @@
-function InvalidCommandException(message) {
-  this.message = message;
-  this.name = InvalidCommandException.name;
-}
-function InvalidActionException(message) {
-  this.message = message;
-  this.name = InvalidActionException.name;
-}
-function RoomNotFoundException(key) {
-  this.message = `Room with key ${key} not found`;
-  /* TODO: That's some fucked up code.
-  if (key !== "undefined") {
-    if (key.split("").length != 4) {
-      this.message = `${key} is not a valid key. A key must have 5 digits.`;
-    }
+class ServerException extends Error {
+  constructor(message) {
+    super(message);
+    this.response = {
+      Exception: this.constructor.name,
+      Message: message,
+    };
+    Error.captureStackTrace(this, this.constructor);
   }
-  */
-  this.name = RoomNotFoundException.name;
 }
-function RoomFullException(key) {
-  this.message = `Room with key ${key} is already full.`;
-  this.name = RoomFullException.name;
+class InvalidCommandException extends ServerException {
+  constructor() {
+    super(`Command with invalid command-structure submitted.`);
+  }
 }
-function NotRoomHostException() {
-  this.message = `You have no rights do delete another player's room.`;
-  this.name = NotRoomHostException.name;
+
+class RoomException extends Error {
+  constructor(message) {
+    super(message);
+    this.response = {
+      Exception: this.constructor.name,
+      Message: message,
+    };
+    Error.captureStackTrace(this, this.constructor);
+  }
 }
-function NotInRoomException(userId) {
-  this.message = `User with Id '${userId}' is currently not in a room.`;
-  this.name = NotInRoomException.name;
+class AlreadyInRoomException extends RoomException {
+  constructor(roomKey) {
+    super(`You are currently in a room with the key ${roomKey}`);
+  }
 }
-function AlreadyInRoomException(key) {
-  this.message = `You are currently in a room with the key ${key}`;
-  this.name = AlreadyInRoomException.name;
+
+class NotInRoomException extends RoomException {
+  constructor(userId) {
+    super(`User with Id ${userId} is currently not in a room.`);
+  }
 }
-function BadRequestException() {
-  this.message = `Request structure incorrect.`;
-  this.name = BadRequestException.name;
+
+class NotRoomHostException extends RoomException {
+  constructor() {
+    super(`You have no rights to delete another player's room`);
+  }
 }
+class RoomFullException extends RoomException {
+  constructor(roomKey) {
+    super(`Room with ${roomKey} is already full`);
+  }
+}
+class RoomNotFoundException extends RoomException {
+  constructor(roomKey) {
+    super(`Room with key ${roomKey} not found`);
+  }
+}
+
 export {
   InvalidCommandException,
   InvalidActionException,

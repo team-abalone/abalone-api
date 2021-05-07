@@ -10,7 +10,8 @@ import { v1 as uuidv1 } from "uuid";
 
 import {
   InvalidCommandException,
-  InvalidActionException,
+  RoomException,
+  ServerException,
 } from "./Exceptions.js";
 
 const server = net.createServer();
@@ -145,12 +146,22 @@ server.on("connection", function (socket) {
         // TODO: Fix or remove, chat not that important right now.
         chatControls.chatFunction(data, rooms, socket);
       } else {
-        throw new Error("Unclear type of action.");
+        throw new InvalidCommandException();
       }
     } catch (err) {
-      // Here we handle errors in case something fucks up.
-      // TODO: Send appropriate responses to clients.
-      console.error(err);
+      // Here we handle errors in case something goes wrong ;)
+
+      //Separation may be of need later on - TODO: update if needed or remove if there will not be a significant difference
+      if (err instanceof RoomException) {
+        socket.write(JSON.stringify(err.response));
+        console.error(err);
+      } else if (err instanceof ServerException) {
+        socket.write(JSON.stringify(err.response));
+        console.error(err);
+      } else {
+        socket.write(JSON.stringify(err.response));
+        console.error(err);
+      }
     }
   });
 
@@ -185,7 +196,7 @@ const validateCommandStructure = (
       (includeProps && !input.hasOwnProperty("props")) ||
       (includeUserId && !input.hasOwnProperty("userId"))
     ) {
-      throw new InvalidCommandException("Invalid Argument");
+      throw new InvalidCommandException();
     }
   } catch (e) {
     console.log(`${e.name}: ${e.message}`);
