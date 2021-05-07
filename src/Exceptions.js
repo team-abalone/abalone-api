@@ -54,11 +54,9 @@ class RoomNotFoundException extends RoomException {
 
 export {
   InvalidCommandException,
-  InvalidActionException,
   RoomFullException,
   RoomNotFoundException,
   NotRoomHostException,
   NotInRoomException,
   AlreadyInRoomException,
-  BadRequestException,
 };
