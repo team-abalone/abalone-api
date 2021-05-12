@@ -80,7 +80,7 @@ server.on("connection", function (socket) {
         socket.write(
           JSON.stringify({
             commandCode: OutCommandCodes.RoomCreated,
-            props: { roomKey },
+            roomKey,
           })
         );
       } else if (commandCode === InCommandCodes.JoinRoom) {
@@ -90,7 +90,7 @@ server.on("connection", function (socket) {
         socket.write(
           JSON.stringify({
             commandCode: OutCommandCodes.RoomJoined,
-            props: { ...room },
+            room,
           })
         );
 
@@ -100,7 +100,7 @@ server.on("connection", function (socket) {
           userId,
           JSON.stringify({
             commandCode: OutCommandCodes.RoomJoinedOther,
-            props: { ...room },
+            room,
           })
         );
       } else if (commandCode === InCommandCodes.CloseRoom) {
@@ -129,7 +129,7 @@ server.on("connection", function (socket) {
         socket.write(
           JSON.stringify({
             commandCode: OutCommandCodes.GameStarted,
-            props: { gameField: room.gameField },
+            gameField: room.gameField,
           })
         );
 
@@ -139,7 +139,7 @@ server.on("connection", function (socket) {
           userId,
           JSON.stringify({
             commandCode: OutCommandCodes.GameStarted,
-            props: { gameField: room.gameField },
+            gameField: room.gameField,
           })
         );
       } else if (commandCode === InCommandCodes.SendChatMessage) {
