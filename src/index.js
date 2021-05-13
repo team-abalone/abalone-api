@@ -29,8 +29,7 @@ server.listen(PORT, host, function () {
  * The following structure is used to send commands:
  * {
  *  userId: <userId>,
- *  commandCode: <commandCode>,
- *  props: <props>,
+ *  commandCode: <commandCode>
  * }
  */
 server.on("connection", function (socket) {
@@ -48,7 +47,7 @@ server.on("connection", function (socket) {
     let convertedData = JSON.parse(data.toString());
     //validateCommandStructure(convertedData);
 
-    let { userId, commandCode, props } = convertedData;
+    let { userId, commandCode, numberOfPlayers, roomKey } = convertedData;
 
     if (userId && !socket.name) {
       socket.name = userId;
@@ -74,7 +73,7 @@ server.on("connection", function (socket) {
           })
         );
       } else if (commandCode === InCommandCodes.CreateRoom) {
-        let roomKey = roomControls.createRoom(userId, props.numberOfPlayers);
+        let roomKey = roomControls.createRoom(userId, numberOfPlayers);
 
         // Send roomKey to room creator.
         socket.write(
@@ -84,7 +83,7 @@ server.on("connection", function (socket) {
           })
         );
       } else if (commandCode === InCommandCodes.JoinRoom) {
-        let room = roomControls.joinRoom(userId, props.roomKey);
+        let room = roomControls.joinRoom(userId, roomKey);
 
         // Notify current user about his successful join.
         socket.write(
@@ -104,7 +103,7 @@ server.on("connection", function (socket) {
           })
         );
       } else if (commandCode === InCommandCodes.CloseRoom) {
-        let room = roomControls.closeRoom(userId, props.roomKey);
+        let room = roomControls.closeRoom(userId, roomKey);
 
         if (room) {
           socket.write(
@@ -123,7 +122,7 @@ server.on("connection", function (socket) {
           })
         );
       } else if (commandCode === InCommandCodes.StartGame) {
-        let room = roomControls.startGame(userId, props.roomKey);
+        let room = roomControls.startGame(userId, roomKey);
 
         // Notify creator of room about successful game start.
         socket.write(
@@ -219,7 +218,7 @@ const broadCastToRoom = (room, excludeUserId, payload) => {
     op.write(
       JSON.stringify({
         commandCode: OutCommandCodes.RoomJoinedOther,
-        props: { ...room },
+        ...room,
       })
     );
   });
