@@ -68,7 +68,7 @@ server.on("connection", function (socket) {
         socket.name = userId;
 
         socket.write(
-          JSON.stringify({
+          sendConvertedResponse({
             commandCode: OutCommandCodes.IdInitialized,
             userId,
           })
@@ -78,7 +78,7 @@ server.on("connection", function (socket) {
 
         // Send roomKey to room creator.
         socket.write(
-          JSON.stringify({
+          sendConvertedResponse({
             commandCode: OutCommandCodes.RoomCreated,
             roomKey,
           })
@@ -88,7 +88,7 @@ server.on("connection", function (socket) {
 
         // Notify current user about his successful join.
         socket.write(
-          JSON.stringify({
+          sendConvertedResponse({
             commandCode: OutCommandCodes.RoomJoined,
             room,
           })
@@ -108,7 +108,7 @@ server.on("connection", function (socket) {
 
         if (room) {
           socket.write(
-            JSON.stringify({
+            sendConvertedResponse({
               commandCode: OutCommandCodes.RoomClosed,
             })
           );
@@ -127,7 +127,7 @@ server.on("connection", function (socket) {
 
         // Notify creator of room about successful game start.
         socket.write(
-          JSON.stringify({
+          sendConvertedResponse({
             commandCode: OutCommandCodes.GameStarted,
             gameField: room.gameField,
           })
@@ -153,13 +153,13 @@ server.on("connection", function (socket) {
 
       //Separation may be of need later on - TODO: update if needed or remove if there will not be a significant difference
       if (err instanceof RoomException) {
-        socket.write(JSON.stringify(err.response));
+        socket.write(sendConvertedResponse(err.response));
         console.error(err);
       } else if (err instanceof ServerException) {
-        socket.write(JSON.stringify(err.response));
+        socket.write(sendConvertedResponse(err.response));
         console.error(err);
       } else {
-        socket.write(JSON.stringify(err.response));
+        socket.write(sendConvertedResponse(err.response));
         console.error(err);
       }
     }
@@ -204,6 +204,15 @@ const validateCommandStructure = (
 };
 
 /**
+ * Used to add a linebreak to every response. Our client will be reading all the data in lines,
+ * this ensures that the Client knows, where our response ends.
+ * @param {any} res - String resulting from JSON
+ */
+const sendConvertedResponse = (res) => {
+  return `${JSON.stringify(res)}\n`;
+};
+
+/**
  * Broadcasting a payload to all players in room, excluding the user with the excludeUserId.
  * @param {*} room The room to broadcast to.
  * @param {*} excludeUserId The user to exclude.
@@ -217,7 +226,7 @@ const broadCastToRoom = (room, excludeUserId, payload) => {
 
   otherPlayers.forEach((op) => {
     op.write(
-      JSON.stringify({
+      sendConvertedResponse({
         commandCode: OutCommandCodes.RoomJoinedOther,
         props: { ...room },
       })
