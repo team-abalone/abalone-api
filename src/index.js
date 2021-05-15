@@ -68,36 +68,30 @@ server.on("connection", function (socket) {
         socket.name = userId;
 
         socket.write(
-          sendConvertedResponse(
-            JSON.stringify({
-              commandCode: OutCommandCodes.IdInitialized,
-              userId,
-            })
-          )
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.IdInitialized,
+            userId,
+          })
         );
       } else if (commandCode === InCommandCodes.CreateRoom) {
         let roomKey = roomControls.createRoom(userId, props.numberOfPlayers);
 
         // Send roomKey to room creator.
         socket.write(
-          sendConvertedResponse(
-            JSON.stringify({
-              commandCode: OutCommandCodes.RoomCreated,
-              roomKey,
-            })
-          )
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.RoomCreated,
+            roomKey,
+          })
         );
       } else if (commandCode === InCommandCodes.JoinRoom) {
         let room = roomControls.joinRoom(userId, props.roomKey);
 
         // Notify current user about his successful join.
         socket.write(
-          sendConvertedResponse(
-            JSON.stringify({
-              commandCode: OutCommandCodes.RoomJoined,
-              room,
-            })
-          )
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.RoomJoined,
+            room,
+          })
         );
 
         // Notify other players in room about room join.
@@ -114,11 +108,9 @@ server.on("connection", function (socket) {
 
         if (room) {
           socket.write(
-            sendConvertedResponse(
-              JSON.stringify({
-                commandCode: OutCommandCodes.RoomClosed,
-              })
-            )
+            sendConvertedResponse({
+              commandCode: OutCommandCodes.RoomClosed,
+            })
           );
         }
 
@@ -135,12 +127,10 @@ server.on("connection", function (socket) {
 
         // Notify creator of room about successful game start.
         socket.write(
-          sendConvertedResponse(
-            JSON.stringify({
-              commandCode: OutCommandCodes.GameStarted,
-              gameField: room.gameField,
-            })
-          )
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.GameStarted,
+            gameField: room.gameField,
+          })
         );
 
         // Notify other players in room about game start.
@@ -163,13 +153,13 @@ server.on("connection", function (socket) {
 
       //Separation may be of need later on - TODO: update if needed or remove if there will not be a significant difference
       if (err instanceof RoomException) {
-        socket.write(sendConvertedResponse(JSON.stringify(err.response)));
+        socket.write(sendConvertedResponse(err.response));
         console.error(err);
       } else if (err instanceof ServerException) {
-        socket.write(sendConvertedResponse(JSON.stringify(err.response)));
+        socket.write(sendConvertedResponse(err.response));
         console.error(err);
       } else {
-        socket.write(sendConvertedResponse(JSON.stringify(err.response)));
+        socket.write(sendConvertedResponse(err.response));
         console.error(err);
       }
     }
@@ -219,7 +209,7 @@ const validateCommandStructure = (
  * @param {any} res - String resulting from JSON
  */
 const sendConvertedResponse = (res) => {
-  return `${res}\n`;
+  return `${JSON.stringify(res)}\n`;
 };
 
 /**
@@ -236,12 +226,10 @@ const broadCastToRoom = (room, excludeUserId, payload) => {
 
   otherPlayers.forEach((op) => {
     op.write(
-      sendConvertedResponse(
-        JSON.stringify({
-          commandCode: OutCommandCodes.RoomJoinedOther,
-          props: { ...room },
-        })
-      )
+      sendConvertedResponse({
+        commandCode: OutCommandCodes.RoomJoinedOther,
+        props: { ...room },
+      })
     );
   });
 };
