@@ -30,7 +30,7 @@ class RoomControls {
     let existing = this.findRoomByPlayer(userId);
 
     if (existing) {
-      throw new AlreadyInRoomException(existing.roomkey);
+      throw new AlreadyInRoomException(existing.roomKey);
     }
 
     if (isNaN(numberOfPlayers)) {
@@ -61,11 +61,11 @@ class RoomControls {
     }
 
     if (roomToJoin.players.length >= roomToJoin.numberOfPlayers) {
-      throw new RoomFullException(roomToJoin.roomkey);
+      throw new RoomFullException(roomToJoin.roomKey);
     }
 
     if (roomToJoin.players.includes(userId)) {
-      throw new AlreadyInRoomException(this.findRoomByPlayer(userId).roomkey);
+      throw new AlreadyInRoomException(this.findRoomByPlayer(userId).roomKey);
     }
 
     if (!roomToJoin.players.includes(userId)) {
@@ -92,8 +92,14 @@ class RoomControls {
     }
 
     // For now we always return the same field.
-    let field = { ...FieldConfigs.TwoPlayers.Default };
-    room.gameField = { ...field };
+
+    var field = Object.keys(FieldConfigs.TwoPlayers.Default).map(function (
+      key
+    ) {
+      return FieldConfigs.TwoPlayers.Default[key];
+    });
+
+    room.gameField = field;
 
     return room;
   };
@@ -113,9 +119,7 @@ class RoomControls {
    * @returns The room the user with the given id is in.
    */
   findRoomByPlayer = (userId) => {
-    return this.rooms.find((rooms) =>
-      rooms.players.find((p) => p.userId === userId)
-    );
+    return this.rooms.find((rooms) => rooms.players.includes(userId));
   };
 
   /**
