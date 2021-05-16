@@ -7,6 +7,7 @@ import {
   RoomNotFoundException,
   RoomFullException,
   NotRoomHostException,
+  NotInRoomException,
 } from "../src/Exceptions.js";
 
 // tests for createRoom.
@@ -112,13 +113,11 @@ describe("#startGame(userId, roomKey)", function () {
   let roomControls;
   let userId;
   let userId1;
-  let userId2;
 
   beforeEach(function () {
     roomControls = new RoomControls();
     userId = uuidv1();
     userId1 = uuidv1();
-    userId2 = uuidv1();
   });
 
   it("should throw RoomNotFoundException if room with roomKey not found.", function () {
@@ -176,5 +175,146 @@ describe("#startGame(userId, roomKey)", function () {
 
     // GameField[0] should also be array.
     expect(room.gameField[0]).to.be.an("array");
+  });
+});
+
+// tests for closeRoom.
+describe("#closeRoom(userId, roomKey)", function () {
+  let roomControls;
+  let userId;
+  let userId1;
+
+  beforeEach(function () {
+    roomControls = new RoomControls();
+    userId = uuidv1();
+    userId1 = uuidv1();
+  });
+
+  it("should throw RoomNotFoundException if room with roomKey not found.", function () {
+    // No room exists yet.
+    expect(() => roomControls.closeRoom(userId, "5rt3e")).to.throw(
+      RoomNotFoundException
+    );
+  });
+
+  it("should throw NotRoomHostException if player tries to close other players room.", function () {
+    let roomKey = roomControls.createRoom(userId, 2);
+
+    // Should throw NotRoomHostException;
+    expect(() => roomControls.closeRoom(userId1, roomKey)).to.throw(
+      NotRoomHostException
+    );
+  });
+
+  it("room should not exist anymore after closal.", function () {
+    let roomKey = roomControls.createRoom(userId, 2);
+
+    // Closal of room should work.
+    expect(() => roomControls.closeRoom(userId, roomKey)).to.not.throw(Error);
+
+    // Should not find a room with the roomKey of the closed room.
+    let room = roomControls.findRoomByRoomKey(roomKey);
+    expect(room).to.be.an("undefined");
+  });
+});
+
+// tests for leaveRoom.
+describe("#leaveRoom(userId)", function () {
+  let roomControls;
+  let userId;
+  let userId1;
+
+  beforeEach(function () {
+    roomControls = new RoomControls();
+    userId = uuidv1();
+    userId1 = uuidv1();
+  });
+
+  it("should throw NotInRoomException if user is not in room.", function () {
+    // No room exists yet.
+    expect(() => roomControls.leaveRoom(userId)).to.throw(NotInRoomException);
+  });
+
+  it("should not be in room anymore after leaving", function () {
+    let roomKey = roomControls.createRoom(userId, 2);
+    let room = roomControls.findRoomByRoomKey(roomKey);
+
+    // Joining room should work.
+    expect(() => roomControls.joinRoom(userId1, roomKey)).to.not.throw(Error);
+
+    // Leaving room should work.
+    expect(() => roomControls.leaveRoom(userId1)).to.not.throw(Error);
+
+    room = roomControls.findRoomByRoomKey(room.roomKey);
+
+    // Player, that left should not be included in players anymore.
+    expect(room.players).to.not.have.members([userId1]);
+  });
+
+  it("room should be removed in case the creator leaves.", function () {
+    let roomKey = roomControls.createRoom(userId, 2);
+    let room = roomControls.findRoomByRoomKey(roomKey);
+
+    // Joining room should work.
+    expect(() => roomControls.joinRoom(userId1, roomKey)).to.not.throw(Error);
+
+    // Leaving room should work and remove room, as the creator left.
+    expect(() => roomControls.leaveRoom(userId)).to.not.throw(Error);
+
+    room = roomControls.findRoomByRoomKey(room.roomKey);
+
+    // Room should not exist anymore.
+    expect(room).to.be.an("undefined");
+  });
+});
+
+// tests for findRoomByPlayer
+describe("#findRoomByPlayer(userId)", function () {
+  let roomControls;
+  let userId;
+
+  beforeEach(function () {
+    roomControls = new RoomControls();
+    userId = uuidv1();
+  });
+
+  it("should return undefined if no room exists for player.", function () {
+    let room = roomControls.findRoomByPlayer(userId);
+    // Not room exists for player yet.
+    expect(room).to.be.an("undefined");
+  });
+
+  it("should return room if room exists for player.", function () {
+    roomControls.createRoom(userId, 2);
+
+    let room = roomControls.findRoomByPlayer(userId);
+    // Not room exists for player yet.
+    expect(room).to.not.be.an("undefined");
+  });
+});
+
+// tests for findRoomByRoomKey
+describe("#findRoomByRoomKey(roomKey)", function () {
+  let roomControls;
+  let userId;
+
+  beforeEach(function () {
+    roomControls = new RoomControls();
+    userId = uuidv1();
+  });
+
+  it("should return undefined if no room exists for player.", function () {
+    let room = roomControls.findRoomByRoomKey("5rtge");
+    // Not room exists for player yet.
+    expect(room).to.be.an("undefined");
+  });
+
+  it("should return room if room with roomKey exists.", function () {
+    let roomKey = roomControls.createRoom(userId, 2);
+
+    let room = roomControls.findRoomByRoomKey(roomKey);
+
+    // Room with roomKey exists and should be returned.
+    expect(room).to.not.be.an("undefined");
   });
 });
