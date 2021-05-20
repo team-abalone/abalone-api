@@ -3,7 +3,7 @@ import net from "net";
 const PORT = process.env.PORT || 5001;
 const host = process.env.HOST || "0.0.0.0";
 
-import { RoomControls, ChatControls } from "./Controls/index.js";
+import { RoomControls, ChatControls, GameControls } from "./Controls/index.js";
 import { InCommandCodes, OutCommandCodes } from "./GlobalVars.js";
 
 import { v1 as uuidv1 } from "uuid";
@@ -18,6 +18,7 @@ const server = net.createServer();
 
 const roomControls = new RoomControls();
 const chatControls = new ChatControls();
+const gameControls = new GameControls();
 
 let sockets = [];
 
@@ -47,7 +48,8 @@ server.on("connection", function (socket) {
     let convertedData = JSON.parse(data.toString());
     //validateCommandStructure(convertedData);
 
-    let { userId, commandCode, numberOfPlayers, roomKey } = convertedData;
+    let { userId, commandCode, numberOfPlayers, roomKey, marbles, direction } =
+      convertedData;
 
     if (userId && !socket.name) {
       socket.name = userId;
@@ -138,6 +140,16 @@ server.on("connection", function (socket) {
       } else if (commandCode === InCommandCodes.SendChatMessage) {
         // TODO: Fix or remove, chat not that important right now.
         chatControls.chatFunction(data, rooms, socket);
+      } else if (commandCode === InCommandCodes.MakeMove) {
+        //Broadcast marbles that are to be moved to other players
+        broadCastToRoom(
+          roomControls.findRoomByPlayer(userId),
+          userId,
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.MadeMove,
+            toMove: gameControls.MakeMove(marbles, direction),
+          })
+        );
       } else {
         throw new InvalidCommandException();
       }

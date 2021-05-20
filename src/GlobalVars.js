@@ -6,6 +6,7 @@ const InCommandCodes = {
   SendChatMessage: 50,
   GetUserId: 60,
   StartGame: 70,
+  MakeMove: 80,
 };
 
 const OutCommandCodes = {
@@ -15,6 +16,7 @@ const OutCommandCodes = {
   RoomCreated: 40,
   RoomClosed: 50,
   RoomJoinedOther: 60,
+  MadeMove: 70,
 };
 
 const GameParameters = {
