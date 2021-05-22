@@ -217,6 +217,7 @@ const broadCastToRoom = (room, excludeUserId, payload) => {
     (s) => room.players.includes(s.name) && s.name !== excludeUserId
   );
 
+  console.log(payload);
   otherPlayers.forEach((op) => {
     op.write(sendConvertedResponse(payload));
   });
