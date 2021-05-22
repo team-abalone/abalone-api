@@ -100,7 +100,7 @@ server.on("connection", function (socket) {
         broadCastToRoom(
           room,
           userId,
-          JSON.stringify({
+          sendConvertedResponse({
             commandCode: OutCommandCodes.RoomJoinedOther,
             roomKey: room?.roomKey,
             players: room?.players,
@@ -123,7 +123,7 @@ server.on("connection", function (socket) {
         broadCastToRoom(
           room,
           userId,
-          JSON.stringify({
+          sendConvertedResponse({
             commandCode: OutCommandCodes.RoomClosed,
           })
         );
