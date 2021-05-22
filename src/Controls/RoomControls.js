@@ -29,8 +29,10 @@ class RoomControls {
   createRoom = (userId, numberOfPlayers) => {
     let existing = this.findRoomByPlayer(userId);
 
+    // Close existing room if exists.
     if (existing) {
-      throw new AlreadyInRoomException(existing.roomKey);
+      this.closeRoom(userId, existing.roomKey);
+      //throw new AlreadyInRoomException(existing.roomKey);
     }
 
     if (isNaN(numberOfPlayers)) {
