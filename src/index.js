@@ -97,17 +97,13 @@ server.on("connection", function (socket) {
         );
 
         // Notify other players in room about room join.
-        broadCastToRoom(
-          room,
-          userId,
-          sendConvertedResponse({
-            commandCode: OutCommandCodes.RoomJoinedOther,
-            roomKey: room?.roomKey,
-            players: room?.players,
-            createdBy: room?.createdBy,
-            numberOfPlayers: room?.numberOfPlayers,
-          })
-        );
+        broadCastToRoom(room, userId, {
+          commandCode: OutCommandCodes.RoomJoinedOther,
+          roomKey: room?.roomKey,
+          players: room?.players,
+          createdBy: room?.createdBy,
+          numberOfPlayers: room?.numberOfPlayers,
+        });
       } else if (commandCode === InCommandCodes.CloseRoom) {
         let room = roomControls.closeRoom(userId, roomKey);
 
@@ -120,13 +116,9 @@ server.on("connection", function (socket) {
         }
 
         // Notify other players in room about room closal.
-        broadCastToRoom(
-          room,
-          userId,
-          sendConvertedResponse({
-            commandCode: OutCommandCodes.RoomClosed,
-          })
-        );
+        broadCastToRoom(room, userId, {
+          commandCode: OutCommandCodes.RoomClosed,
+        });
       } else if (commandCode === InCommandCodes.StartGame) {
         let room = roomControls.startGame(userId, roomKey);
 
@@ -139,14 +131,10 @@ server.on("connection", function (socket) {
         );
 
         // Notify other players in room about game start.
-        broadCastToRoom(
-          room,
-          userId,
-          sendConvertedResponse({
-            commandCode: OutCommandCodes.GameStarted,
-            gameField: room.gameField,
-          })
-        );
+        broadCastToRoom(room, userId, {
+          commandCode: OutCommandCodes.GameStarted,
+          gameField: room.gameField,
+        });
       } else if (commandCode === InCommandCodes.SendChatMessage) {
         // TODO: Fix or remove, chat not that important right now.
         chatControls.chatFunction(data, rooms, socket);
