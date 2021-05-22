@@ -89,7 +89,10 @@ server.on("connection", function (socket) {
         socket.write(
           sendConvertedResponse({
             commandCode: OutCommandCodes.RoomJoined,
-            room,
+            roomKey: room?.roomKey,
+            players: room?.players,
+            createdBy: room?.createdBy,
+            numberOfPlayers: room?.numberOfPlayers,
           })
         );
 
@@ -99,7 +102,10 @@ server.on("connection", function (socket) {
           userId,
           JSON.stringify({
             commandCode: OutCommandCodes.RoomJoinedOther,
-            room,
+            roomKey: room?.roomKey,
+            players: room?.players,
+            createdBy: room?.createdBy,
+            numberOfPlayers: room?.numberOfPlayers,
           })
         );
       } else if (commandCode === InCommandCodes.CloseRoom) {
@@ -224,11 +230,6 @@ const broadCastToRoom = (room, excludeUserId, payload) => {
   );
 
   otherPlayers.forEach((op) => {
-    op.write(
-      sendConvertedResponse({
-        commandCode: OutCommandCodes.RoomJoinedOther,
-        ...room,
-      })
-    );
+    op.write(sendConvertedResponse(payload));
   });
 };
