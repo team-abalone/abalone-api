@@ -142,7 +142,7 @@ server.on("connection", function (socket) {
         broadCastToRoom(
           room,
           userId,
-          JSON.stringify({
+          sendConvertedResponse({
             commandCode: OutCommandCodes.GameStarted,
             gameField: room.gameField,
           })
