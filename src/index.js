@@ -12,6 +12,7 @@ import {
   InvalidCommandException,
   RoomException,
   ServerException,
+  GameException,
 } from "./Exceptions.js";
 
 const server = net.createServer();
@@ -142,14 +143,10 @@ server.on("connection", function (socket) {
         chatControls.chatFunction(data, rooms, socket);
       } else if (commandCode === InCommandCodes.MakeMove) {
         //Broadcast marbles that are to be moved to other players
-        broadCastToRoom(
-          roomControls.findRoomByPlayer(userId),
-          userId,
-          {
-            commandCode: OutCommandCodes.MadeMove,
-            toMove: gameControls.makeMove(marbles, direction),
-          }
-        );
+        broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
+          commandCode: OutCommandCodes.MadeMove,
+          toMove: gameControls.makeMove(marbles, direction),
+        });
       } else {
         throw new InvalidCommandException();
       }
@@ -163,6 +160,8 @@ server.on("connection", function (socket) {
       } else if (err instanceof ServerException) {
         socket.write(sendConvertedResponse(err.response));
         console.error(err);
+      } else if (err instanceof GameException) {
+        socket.write(sendConvertedResponse(err.response));
       } else {
         socket.write(sendConvertedResponse(err.response));
         console.error(err);
@@ -223,6 +222,7 @@ const sendConvertedResponse = (res) => {
  * @param {*} excludeUserId The user to exclude.
  * @param {*} payload The payload to broadcast.
  */
+//TODO: param room is redundant. whithin broadCastToRoom, we can retrieve the corresponding room via the exludeUserId-param
 const broadCastToRoom = (room, excludeUserId, payload) => {
   // Notify other players about game start.
   let otherPlayers = sockets.filter(

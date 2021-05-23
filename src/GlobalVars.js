@@ -6,7 +6,6 @@ const InCommandCodes = {
   SendChatMessage: 50,
   GetUserId: 60,
   StartGame: 70,
-  MakeMove: 80,
 };
 
 const OutCommandCodes = {

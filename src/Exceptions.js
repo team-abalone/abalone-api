@@ -71,4 +71,5 @@ export {
   AlreadyInRoomException,
   RoomException,
   ServerException,
+  GameException,
 };
