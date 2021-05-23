@@ -145,10 +145,10 @@ server.on("connection", function (socket) {
         broadCastToRoom(
           roomControls.findRoomByPlayer(userId),
           userId,
-          sendConvertedResponse({
+          {
             commandCode: OutCommandCodes.MadeMove,
             toMove: gameControls.makeMove(marbles, direction),
-          })
+          }
         );
       } else {
         throw new InvalidCommandException();
