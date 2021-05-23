@@ -147,7 +147,7 @@ server.on("connection", function (socket) {
           userId,
           sendConvertedResponse({
             commandCode: OutCommandCodes.MadeMove,
-            toMove: gameControls.MakeMove(marbles, direction),
+            toMove: gameControls.makeMove(marbles, direction),
           })
         );
       } else {

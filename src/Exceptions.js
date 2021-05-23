@@ -13,6 +13,16 @@ class InvalidCommandException extends ServerException {
     super(`Command with invalid command-structure submitted.`);
   }
 }
+class GameException extends Error {
+  constructor(message) {
+    super(message);
+    this.response = {
+      Exception: this.constructor.name,
+      Message: message,
+    };
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
 
 class RoomException extends Error {
   constructor(message) {

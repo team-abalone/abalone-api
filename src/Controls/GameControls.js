@@ -1,16 +1,36 @@
+import { InvalidCommandException } from "../Exceptions.js";
+
 class GameControls {
     field;
-    constructor() {
+    directions = ['RIGHTUP', 'LEFTUP', 'LEFTDOWN', 'RIGHTDOWN', 'NOTSET'];
 
+    constructor(field) {
+        // this line will remain if neccassary - but all checks are done in frontend
+        this.field = field;
     }
-   
+   /**
+    * This function will basically broadcast a players move to every other player.
+    * All checks regarding the possibility of making that move are already done in frontend.
+    * Request should look like this: {userId: 'id', commandCode: 70, marbles: [id1,id2,id3], direction: 'LEFTUP'}
+    * @param {any} marbles - Array of marbles that are to be moved
+    * @param {any} direction - Direction the marbles will move to (enum in frontend)
+    */
     makeMove = (marbles, direction) => {
-        //Example request : {userId: "bsp", commandCode: 70, marbles:[{id: 3,}, {...}], direction: 'LEFT_UP'};
-        //if (!marbles) throw error
-        //if(!direction) || if direction.notVaild throw error
+        //Command checks
+        if (!(this.directions.includes(direction))){
+            throw new InvalidCommandException();
+        }
+        if (!marbles) {
+            throw new InvalidCommandException();
+        }
+        if (marbles.length > 5) {
+            throw new InvalidCommandException();
+        }
+
+        //Creating object to broadcast
         let ids =  [];
-        for (let marble in marbles) {
-            ids.push(marble.id);
+        for (let i = 0; i < marbles.length; i++) {
+            ids.push(marbles[i]);
         }
         let marblesWithDirection = {
             ids: ids,
@@ -18,6 +38,10 @@ class GameControls {
         };
 
         return marblesWithDirection;
+        /*Eventually broadcasts a response like this to all Sockets:
+        {\"commandCode\":70,\"toMove\":{\"ids\":[null,null,null],\"direction\":\"LEFTUP\"}}\n"
+        */
     }
 
 }
+export default GameControls
