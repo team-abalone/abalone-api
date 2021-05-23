@@ -36,10 +36,10 @@ class GameControls {
             ids: ids,
             direction: direction
         };
-
+        //TODO: Maybe add 'nextPlayer' to response
         return marblesWithDirection;
         /*Eventually broadcasts a response like this to all Sockets:
-        {\"commandCode\":70,\"toMove\":{\"ids\":[null,null,null],\"direction\":\"LEFTUP\"}}\n"
+       {"commandCode":70,"toMove":{"ids":[1,2,3],"direction":"LEFTUP"}}
         */
     }
 
