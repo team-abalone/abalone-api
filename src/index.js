@@ -89,19 +89,21 @@ server.on("connection", function (socket) {
         socket.write(
           sendConvertedResponse({
             commandCode: OutCommandCodes.RoomJoined,
-            room,
+            roomKey: room?.roomKey,
+            players: room?.players,
+            createdBy: room?.createdBy,
+            numberOfPlayers: room?.numberOfPlayers,
           })
         );
 
         // Notify other players in room about room join.
-        broadCastToRoom(
-          room,
-          userId,
-          JSON.stringify({
-            commandCode: OutCommandCodes.RoomJoinedOther,
-            room,
-          })
-        );
+        broadCastToRoom(room, userId, {
+          commandCode: OutCommandCodes.RoomJoinedOther,
+          roomKey: room?.roomKey,
+          players: room?.players,
+          createdBy: room?.createdBy,
+          numberOfPlayers: room?.numberOfPlayers,
+        });
       } else if (commandCode === InCommandCodes.CloseRoom) {
         let room = roomControls.closeRoom(userId, roomKey);
 
@@ -114,13 +116,9 @@ server.on("connection", function (socket) {
         }
 
         // Notify other players in room about room closal.
-        broadCastToRoom(
-          room,
-          userId,
-          JSON.stringify({
-            commandCode: OutCommandCodes.RoomClosed,
-          })
-        );
+        broadCastToRoom(room, userId, {
+          commandCode: OutCommandCodes.RoomClosed,
+        });
       } else if (commandCode === InCommandCodes.StartGame) {
         let room = roomControls.startGame(userId, roomKey);
 
@@ -133,14 +131,10 @@ server.on("connection", function (socket) {
         );
 
         // Notify other players in room about game start.
-        broadCastToRoom(
-          room,
-          userId,
-          JSON.stringify({
-            commandCode: OutCommandCodes.GameStarted,
-            gameField: room.gameField,
-          })
-        );
+        broadCastToRoom(room, userId, {
+          commandCode: OutCommandCodes.GameStarted,
+          gameField: room.gameField,
+        });
       } else if (commandCode === InCommandCodes.SendChatMessage) {
         // TODO: Fix or remove, chat not that important right now.
         chatControls.chatFunction(data, rooms, socket);
@@ -223,12 +217,8 @@ const broadCastToRoom = (room, excludeUserId, payload) => {
     (s) => room.players.includes(s.name) && s.name !== excludeUserId
   );
 
+  console.log(payload);
   otherPlayers.forEach((op) => {
-    op.write(
-      sendConvertedResponse({
-        commandCode: OutCommandCodes.RoomJoinedOther,
-        ...room,
-      })
-    );
+    op.write(sendConvertedResponse(payload));
   });
 };
