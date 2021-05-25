@@ -146,7 +146,11 @@ server.on("connection", function (socket) {
         //Broadcast marbles that are to be moved to other players
         broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
           commandCode: OutCommandCodes.MadeMove,
-          toMove: gameControls.makeMove(marbles, direction),
+          toMove: gameControls.makeMove(
+            roomControls.findRoomByPlayer(userId),
+            marbles,
+            direction
+          ),
         });
       } else {
         throw new InvalidCommandException();
