@@ -18,9 +18,6 @@ class GameControls {
       throw new GameNotStartedException();
     }
 
-    if (!(room.gameField instanceof FieldConfigs)) {
-      throw new FieldException();
-    }
     /*fieldMap will contain: 
         [
         int: player - the player the marble belongs to,
@@ -64,7 +61,7 @@ class GameControls {
    * @param {any} marbles - Array of marbles that are to be moved
    * @param {any} direction - Direction the marbles will move to (enum in frontend)
    */
-  makeMove = (marbles, direction) => {
+  makeMove = (room, marbles, direction) => {
     if (!room.fieldMap) {
       throw new GameNotStartedException();
     }
@@ -88,6 +85,11 @@ class GameControls {
       ids: ids,
       direction: direction,
     };
+
+    //Updating fieldMap of room
+    for (let id in marblesWithDirection.ids) {
+      updateFieldMap(room, id, marblesWithDirection.direction);
+    }
     //TODO: Maybe add 'nextPlayer' to response
     return marblesWithDirection;
     /*Eventually broadcasts a response like this to all Sockets:
@@ -115,11 +117,18 @@ class GameControls {
    * @param {any} xCoordinate - from direction in GlobalVars
    * @param {any} yCoordinate - from direction in GlobalVars
    */
-  updateFieldMap = (marbleId, xCoordinate, yCoordinate) => {
-    for (let marble in fieldMap) {
+  updateFieldMap = (room, marbleId, direction) => {
+    if (!room.fieldMap) {
+      throw new GameNotStartedException();
+    }
+
+    if (!Directions.hasOwnProperty(direction)) {
+      throw new InvalidCommandException(); //TODO: Maybe deal with an explicit InvalidDirectionException later
+    }
+    for (let marble in room.fieldMap) {
       if (marble.id === marbleId) {
-        marble.xCoordinate += xCoordinate;
-        marble.yCoordinate += yCoordinate;
+        marble.xCoordinate += Directions.direction[0];
+        marble.yCoordinate += Directions.direction[1];
         //If a marble goes beyond the border, it should get removed
         if (
           marble.xCoordinate > room.gameField[marble.yCoordinate] ||
