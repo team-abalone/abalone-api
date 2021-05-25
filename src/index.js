@@ -21,6 +21,7 @@ const roomControls = new RoomControls();
 const chatControls = new ChatControls();
 const gameControls = new GameControls();
 
+
 let sockets = [];
 
 server.listen(PORT, host, function () {
@@ -123,7 +124,8 @@ server.on("connection", function (socket) {
           commandCode: OutCommandCodes.RoomClosed,
         });
       } else if (commandCode === InCommandCodes.StartGame) {
-        let room = roomControls.startGame(userId, roomKey);
+          let room = roomControls.startGame(userId, roomKey);
+          gameControls = addField(room.gameField);
 
         // Notify creator of room about successful game start.
         socket.write(
