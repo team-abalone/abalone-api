@@ -63,18 +63,18 @@ const FieldConfigs = {
   },
 };
 const Directions = {
-    RIGHTUP: [1, 1],
-    LEFTUP: [-1, 1],
-    LEFTDOWN: [-1, -1],
-    RIGHTDOWN: [1, -1],
-    NOTSET: [0,0]
-}
+  RIGHTUP: [1, 1],
+  LEFTUP: [-1, 1],
+  LEFTDOWN: [-1, -1],
+  RIGHTDOWN: [1, -1],
+  NOTSET: [0, 0],
+};
 
 export {
   InCommandCodes,
   OutCommandCodes,
   GameParameters,
   InitialFieldTypes,
-    FieldConfigs,
-    Directions
+  FieldConfigs,
+  Directions,
 };

@@ -25,14 +25,14 @@ class GameException extends Error {
 }
 
 class GameNotStartedException extends GameException {
-    constructor() {
-        super(`Currently, there is no active game.`);
-    }
+  constructor() {
+    super(`Currently, there is no active game.`);
+  }
 }
 class FieldException extends GameException {
-    constructor() {
-        super(`Invalid field-structure detected.`);
-    }
+  constructor() {
+    super(`Invalid field-structure detected.`);
+  }
 }
 
 class RoomException extends Error {
@@ -82,7 +82,7 @@ export {
   AlreadyInRoomException,
   RoomException,
   ServerException,
-    GameException,
-    GameNotStartedException,
-    FieldException,
+  GameException,
+  GameNotStartedException,
+  FieldException,
 };
