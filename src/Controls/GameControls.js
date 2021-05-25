@@ -3,7 +3,7 @@ import { FieldConfigs } from "../GlobalVars.js";
 import { v1 as uuidv1 } from "uuid";
 
 class GameControls {
-  field;
+    fieldMap = [];
   directions = ["RIGHTUP", "LEFTUP", "LEFTDOWN", "RIGHTDOWN", "NOTSET"];
 
     constructor() {
@@ -14,11 +14,17 @@ class GameControls {
         if (!(field instanceof FieldConfigs)) {
             throw new FieldException();
         }
-        //Here we assign unique IDs to each marble that is currently on the board
+        //Here we assign unique IDs to each marble that is currently on the board and keep the information on which marble belongs to which player
         for (let i = 0; i < field.length; i++) {
             for (let j = 0; j < field[i].length; j++) {
-                if (field[i][j] === 1 || field[i][j] === 2) {
-                    field[i][j] = uuidv1;
+                if (field[i][j] === 1) {
+                    fieldMap.push([1, uuidv1]);
+                }
+                else if (field[i][j] === 2) {
+                    fieldMap.push([2, uuidv1]);
+                }
+                else {
+                    this.fieldMap.push([0, null]);
                 }
             }
         }
@@ -26,7 +32,7 @@ class GameControls {
 
     //Whithout a field, other responses in this category will always fail.
     closeGame = () => {
-        this.field = null;
+        this.fieldMap = null;
     }
   /**
    * This function will basically broadcast a players move to every other player.
@@ -36,7 +42,7 @@ class GameControls {
    * @param {any} direction - Direction the marbles will move to (enum in frontend)
    */
     makeMove = (marbles, direction) => {
-        if (!field) {
+        if (!fieldMap) {
             throw new GameNotStartedException();
         }
     //Command checks
