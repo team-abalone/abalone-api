@@ -13,7 +13,7 @@ class GameControls {
    * Assigns our fieldMap - we store which marble belongs to which player and which id is assigned to it
    * @param {any} room - Gamefield and Fieldmap should be stored in corresponding Room
    */
-  addField = (room) => {
+  addFieldMap = (room) => {
     if (!room.gameField) {
       throw new GameNotStartedException();
     }
