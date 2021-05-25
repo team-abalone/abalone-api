@@ -7,37 +7,55 @@ import { FieldConfigs, Directions } from "../GlobalVars.js";
 import { v1 as uuidv1 } from "uuid";
 
 class GameControls {
-  fieldMap = [];
-
   constructor() {}
 
   /**
    * Assigns our fieldMap - we store which marble belongs to which player and which id is assigned to it
-   * @param {any} field - an instance of FieldConfigs in GlobalVars.js
+   * @param {any} room - Gamefield and Fieldmap should be stored in corresponding Room
    */
-  addField = (field) => {
-    if (!(field instanceof FieldConfigs)) {
+  addField = (room) => {
+    if (!room.gameField) {
+      throw new GameNotStartedException();
+    }
+
+    if (!(room.gameField instanceof FieldConfigs)) {
       throw new FieldException();
     }
+    /*fieldMap will contain: 
+        [
+        int: player - the player the marble belongs to,
+        int//uuid - the marbles unique ID,
+        int xCoordinate - xCoordinate of the marble on the board,
+        int yCoordinate - yCoordinate of the marble on the board
+       ]*/
+    let fieldMap = [];
+
     //Here we assign unique IDs to each marble that is currently on the board and keep the information on which marble belongs to which player
     //Iterators i and j will be stored as position x and position y
     for (let i = 0; i < field.length; i++) {
       for (let j = 0; j < field[i].length; j++) {
-        if (field[i][j] === 1) {
-          fieldMap.push([1, uuidv1, i, j]);
-        } else if (field[i][j] === 2) {
-          fieldMap.push([2, uuidv1, i, j]);
-        } else {
-          this.fieldMap.push([0, null, i, j]);
+        let tempMarble = {
+          player: field[i][j],
+          id: uuidv1,
+          xCoordinate: i,
+          yCoordinate: j,
+        };
+        if (tempMarble.player === 0) {
+          tempMarble.id = null;
         }
+        fieldMap.push(tempMarble);
       }
     }
+    room.fieldMap = fieldMap; //FieldMap stored in Room with every Hexagon's data
   };
 
   //Whithout a field, other responses in this category will always fail.
   //By closing a game, we must ensure the field is removed
   closeGame = () => {
-    this.fieldMap = null;
+    if (!room.fieldMap) {
+      throw new FieldException();
+    }
+    room.fieldMap = null;
   };
   /**
    * This function will basically broadcast a players move to every other player.
@@ -47,7 +65,7 @@ class GameControls {
    * @param {any} direction - Direction the marbles will move to (enum in frontend)
    */
   makeMove = (marbles, direction) => {
-    if (!fieldMap) {
+    if (!room.fieldMap) {
       throw new GameNotStartedException();
     }
     //Command checks
@@ -85,8 +103,10 @@ class GameControls {
     if (isNaN(marbleId)) {
       throw new InvalidCommandException();
     }
-    tempMap = fieldMap.filter((X) => x[1] === marbleId);
-    this.fieldMap = tempMap;
+    if (!room.fieldMap) {
+      throw new GameNotStartedException();
+    }
+    room.fieldMap = room.fieldMap.filter((X) => x.id === marbleId);
   };
   /**
    * Keep track of all moves made. Will be called automatically by the makeMove()-method
@@ -97,9 +117,18 @@ class GameControls {
    */
   updateFieldMap = (marbleId, xCoordinate, yCoordinate) => {
     for (let marble in fieldMap) {
-      if (marble[1] === marbleId) {
-        marble[2] += xCoordinate;
-        marble[3] += yCoordinate;
+      if (marble.id === marbleId) {
+        marble.xCoordinate += xCoordinate;
+        marble.yCoordinate += yCoordinate;
+        //If a marble goes beyond the border, it should get removed
+        if (
+          marble.xCoordinate > room.gameField[marble.yCoordinate] ||
+          marble.xCoordinate < 0
+        ) {
+          marbleRemoved(marble.id);
+        } else if (marble.yCoordinate > 9 || marble.yCoordinate < 0) {
+          this.marbleRemoved(marble.id);
+        }
       }
     }
   };
