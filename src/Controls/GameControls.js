@@ -13,13 +13,16 @@ class GameControls {
 
   /**
    * Assigns our fieldMap - we store which marble belongs to which player and which id is assigned to it
+   * May change, depending on the decision if the fieldMap is built in frontend or backend - TODO: Maybe minor changes, depending on decision
    * @param {any} room - Gamefield and Fieldmap should be stored in corresponding Room
    */
   addFieldMap = (room) => {
     if (!room.gameField) {
       throw new GameNotStartedException();
     }
-
+    if (!room) {
+      throw new RoomNotFoundException();
+    }
     /*fieldMap will contain: 
         [
         int: player - the player the marble belongs to,
@@ -46,6 +49,7 @@ class GameControls {
       }
     }
     room.fieldMap = fieldMap; //FieldMap stored in Room with every Hexagon's data
+    return room;
   };
 
   /**
@@ -54,9 +58,10 @@ class GameControls {
    */
   closeGame = (room) => {
     if (!room.fieldMap) {
-      throw new FieldException();
+      throw new GameNotStartedException();
     }
-    room.fieldMap = null;
+    delete room.fieldMap;
+    return room;
   };
   /**
    * This function will basically broadcast a players move to every other player.
@@ -67,6 +72,9 @@ class GameControls {
    * @param {any} direction - Direction the marbles will move to (enum in frontend)
    */
   makeMove = (room, marbles, direction) => {
+    if (!room) {
+      throw new RoomNotFoundException();
+    }
     if (!room.fieldMap) {
       throw new GameNotStartedException();
     }
@@ -77,7 +85,11 @@ class GameControls {
     if (!marbles) {
       throw new InvalidCommandException();
     }
-    if (marbles.length > 5) {
+    if (marbles.length > 5 || marbles.length < 1) {
+      throw new InvalidCommandException();
+    }
+
+    if (!direction) {
       throw new InvalidCommandException();
     }
 

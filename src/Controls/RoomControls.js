@@ -79,6 +79,7 @@ class RoomControls {
 
   /**
    * Starts the game with the given roomKey.
+   * TODO: roomKey might be redundant, because of the possibility to find rooms via userIds
    * @param {*} userId
    * @param {*} roomKey
    */
