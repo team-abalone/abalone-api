@@ -49,8 +49,15 @@ server.on("connection", function (socket) {
     let convertedData = JSON.parse(data.toString());
     //validateCommandStructure(convertedData);
 
-    let { userId, commandCode, numberOfPlayers, roomKey, marbles, direction } =
-      convertedData;
+    let {
+      userId,
+      commandCode,
+      numberOfPlayers,
+      roomKey,
+      marbles,
+      direction,
+      fieldMap,
+    } = convertedData;
 
     if (userId && !socket.name) {
       socket.name = userId;
@@ -151,6 +158,11 @@ server.on("connection", function (socket) {
             marbles,
             direction
           ),
+        });
+      } else if (commandCode === InCommandCodes.CompareField) {
+        sendConvertedResponse({
+          commandCode: OutCommandCodes.FieldComparison,
+          check: gameControls.compareField(room, fieldMap),
         });
       } else {
         throw new InvalidCommandException();

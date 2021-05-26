@@ -2,6 +2,8 @@ import {
   InvalidCommandException,
   GameNotStartedException,
   FieldException,
+  RoomNotFoundException,
+  InvalidDirectionException,
 } from "../Exceptions.js";
 import { FieldConfigs, Directions } from "../GlobalVars.js";
 import { v1 as uuidv1 } from "uuid";
@@ -32,7 +34,7 @@ class GameControls {
     for (let i = 0; i < field.length; i++) {
       for (let j = 0; j < field[i].length; j++) {
         let tempMarble = {
-          player: field[i][j],
+          player: field[i][j], // Can be 1 or 2 at this stage of developement
           id: uuidv1,
           xCoordinate: i,
           yCoordinate: j,
@@ -46,9 +48,11 @@ class GameControls {
     room.fieldMap = fieldMap; //FieldMap stored in Room with every Hexagon's data
   };
 
-  //Whithout a field, other responses in this category will always fail.
-  //By closing a game, we must ensure the field is removed
-  closeGame = () => {
+  /**
+   * Removes fieldMap from our room. Other gamerequests will not work after not having a fieldMap assigned to the room.
+   * @param {any} room
+   */
+  closeGame = (room) => {
     if (!room.fieldMap) {
       throw new FieldException();
     }
@@ -58,6 +62,7 @@ class GameControls {
    * This function will basically broadcast a players move to every other player.
    * All checks regarding the possibility of making that move are already done in frontend.
    * Request should look like this: {userId: 'id', commandCode: 70, marbles: [id1,id2,id3], direction: 'LEFTUP'}
+   * @param {any} room - current room
    * @param {any} marbles - Array of marbles that are to be moved
    * @param {any} direction - Direction the marbles will move to (enum in frontend)
    */
@@ -67,7 +72,7 @@ class GameControls {
     }
     //Command checks
     if (!Directions.includes(direction)) {
-      throw new InvalidCommandException();
+      throw new InvalidDirectionException();
     }
     if (!marbles) {
       throw new InvalidCommandException();
@@ -99,31 +104,37 @@ class GameControls {
 
   /**
    * Keeping track on all active marbles currently on our board, we have to remove every entry in fieldMap which gets pushed out of the field
+   * @param {any} room - current room
    * @param {any} marbleId -int of marble that is being pushed out
    */
-  marbleRemoved = (marbleId) => {
+  marbleRemoved = (room, marbleId) => {
     if (isNaN(marbleId)) {
       throw new InvalidCommandException();
     }
     if (!room.fieldMap) {
       throw new GameNotStartedException();
     }
+    if (!room) {
+      throw new RoomNotFoundException();
+    }
     room.fieldMap = room.fieldMap.filter((X) => x.id === marbleId);
   };
   /**
    * Keep track of all moves made. Will be called automatically by the makeMove()-method
    * Can call marbleRemoved-method() if neccessary
-   * @param {any} marbleId - currently pushed marble
-   * @param {any} xCoordinate - from direction in GlobalVars
-   * @param {any} yCoordinate - from direction in GlobalVars
+   * @param {any} room - current room
+   * @param {any} marbleId - marble that is being updated (single marble)
+   * @param {any} direction - includes movement for x- and y-coordinate (defined in GlobalVars.js)
    */
   updateFieldMap = (room, marbleId, direction) => {
     if (!room.fieldMap) {
       throw new GameNotStartedException();
     }
-
+    if (!room) {
+      throw new RoomNotFoundException();
+    }
     if (!Directions.hasOwnProperty(direction)) {
-      throw new InvalidCommandException(); //TODO: Maybe deal with an explicit InvalidDirectionException later
+      throw new InvalidDirectionException();
     }
     for (let marble in room.fieldMap) {
       if (marble.id === marbleId) {
@@ -136,10 +147,27 @@ class GameControls {
         ) {
           marbleRemoved(marble.id);
         } else if (marble.yCoordinate > 9 || marble.yCoordinate < 0) {
-          this.marbleRemoved(marble.id);
+          this.marbleRemoved(room, marble.id);
         }
       }
     }
   };
+
+  compareField(room, fieldMap) {
+    if (!room) {
+      throw new RoomNotFoundException();
+    }
+    if (!room.fieldMap) {
+      throw new GameNotStartedException();
+    }
+    if (!fieldMap) {
+      throw new InvalidCommandException();
+    }
+    if (room.fieldMap == fieldMap) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
 export default GameControls;
