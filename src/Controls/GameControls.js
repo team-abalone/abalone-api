@@ -6,7 +6,7 @@ import {
   GameCommandException,
 } from "../Exceptions.js";
 import { FieldConfigs, Directions } from "../GlobalVars.js";
-import { v1 as uuidv1 } from "uuid";
+
 
 class GameControls {
   constructor() {}
@@ -31,21 +31,23 @@ class GameControls {
         int yCoordinate - yCoordinate of the marble on the board
        ]*/
     let fieldMap = [];
-
+      let currentId = 0;
     //Here we assign unique IDs to each marble that is currently on the board and keep the information on which marble belongs to which player
     //Iterators i and j will be stored as position x and position y
     for (let i = 0; i < field.length; i++) {
       for (let j = 0; j < field[i].length; j++) {
         let tempMarble = {
           player: field[i][j], // Can be 1 or 2 at this stage of developement
-          id: uuidv1,
+          id: currentId,
           xCoordinate: i,
           yCoordinate: j,
-        };
-        if (tempMarble.player === 0) {
-          tempMarble.id = null;
+          };
+          //We only keep marbles in fieldMap - not empty Hexagons
+        if (!(tempMarble.player === 0)) {
+          fieldMap.push(tempMarble);
+          currentId++;
         }
-        fieldMap.push(tempMarble);
+          
       }
     }
     room.fieldMap = fieldMap; //FieldMap stored in Room with every Hexagon's data
@@ -128,8 +130,13 @@ class GameControls {
     }
     if (!room) {
       throw new RoomNotFoundException();
-    }
-    room.fieldMap = room.fieldMap.filter((X) => x.id === marbleId);
+      }
+      
+      for (let entry in room.fieldMap) {
+          if (entry.id === marbleId) {
+              room.fieldMap = room.fieldMap.filter((x) => x.id === entry.id);
+          }
+      }
   };
   /**
    * Keep track of all moves made. Will be called automatically by the makeMove()-method
@@ -141,7 +148,10 @@ class GameControls {
   updateFieldMap = (room, marbleId, direction) => {
     if (!room.fieldMap) {
       throw new GameNotStartedException();
-    }
+      }
+      if (isNaN(marbleId)) {
+          throw new GameCommandException();
+      }
     if (!room) {
       throw new RoomNotFoundException();
     }

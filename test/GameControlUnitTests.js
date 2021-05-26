@@ -5,7 +5,6 @@ import randomstring from "randomstring";
 import { Directions } from "../src/GlobalVars.js";
 import {
   AlreadyInRoomException,
-  InvalidCommandException,
   RoomNotFoundException,
   RoomFullException,
   NotRoomHostException,
@@ -13,6 +12,7 @@ import {
   GameNotStartedException,
   FieldException,
   InvalidDirectionException,
+  GameCommandException,
 } from "../src/Exceptions.js";
 
 describe("#addFieldMap(room)", function () {
@@ -149,14 +149,14 @@ describe("#makeMove(room,marbles,direction)", function () {
       InvalidDirectionException
     );
   });
-  it("when there are no marbles given, it should lead to an InvalidCommandException", function () {
+  it("when there are no marbles given, it should lead to a GameCommandException", function () {
     let direction = Directions.RIGHTUP;
     room = gameControls.closeGame(room);
-    expect(() => gameControls.makeMove(room, null, direction)).to.throw(
-      InvalidCommandException
+      expect(() => gameControls.makeMove(room, null, direction)).to.throw(
+          GameCommandException
     );
   });
-  it("selecting more than 5 marbles or less than 1 will lead to a InvalidCommandException", function () {
+  it("selecting more than 5 marbles or less than 1 will lead to a GameCommandException", function () {
     let marbleIds = [
       room.fieldMap[0].id,
       room.fieldMap[1].id,
@@ -167,15 +167,15 @@ describe("#makeMove(room,marbles,direction)", function () {
     ];
     let direction = Directions.RIGHTUP;
     room = gameControls.closeGame(room);
-    expect(() => gameControls.makeMove(room, marbleIds, direction)).to.throw(
-      InvalidCommandException
+      expect(() => gameControls.makeMove(room, marbleIds, direction)).to.throw(
+          GameCommandException
     );
     let nullId = [];
-    expect(() => gameControls.makeMove(room, nullId, direction)).to.throw(
-      InvalidCommandException
+      expect(() => gameControls.makeMove(room, nullId, direction)).to.throw(
+          GameCommandException
     );
   });
-  it("no direction leads to another InvalidCommandException", function () {
+  it("no direction leads to another GameCommandException", function () {
     let marbleIds = [
       room.fieldMap[0].id,
       room.fieldMap[1].id,
@@ -186,8 +186,141 @@ describe("#makeMove(room,marbles,direction)", function () {
     ];
 
     room = gameControls.closeGame(room);
-    expect(() => gameControls.makeMove(room, marbleIds, null)).to.throw(
-      InvalidCommandException
+      expect(() => gameControls.makeMove(room, marbleIds, null)).to.throw(
+          GameCommandException
     );
   });
+});
+describe("#marbleRemoved(room,marbleId)", function () {
+    beforeEach(function () {
+        userId = uuidv1;
+
+        let room = {
+            roomKey: randomstring.generate(5),
+            createdBy: userId,
+            players: [userId],
+            numberOfPlayers: 3,
+        };
+        room = roomControls.startGame(userId, room.roomKey);
+        room = gameControls.addFieldMap(room);
+        let marbleId = room.fieldMap[2].id; //example id
+    });
+    it("When marble gets removed, the marble should be filtered", function () {
+        let currentMarble;
+        let removedMarble;
+
+        for (let marble in room.fieldMap) {
+            if (marble.id === marbleId) {
+                currentMarble = marble;
+            }
+        }
+        gameControls.marbleRemoved(room, marbleId);
+        for (let marble in room.fieldMap) {
+            if (marble.id === marbleId) {
+                removedMarble = marble;
+            }
+        }
+        expect(currentMarble).to.not.equal(null);
+        expect(removedMarble).to.equal(null);
+
+    });
+    it("marbleId has to be a number, otherwise GameCommandException should be thrown", function () {
+        expect(() => gameControls.marbleRemoved(room, "not a number")).to.throw(
+            GameCommandException
+        );
+    });
+    it("if no room is given, a RoomNotFoundException should be thrown", function () {
+        expect(() => gameControls.marbleRemoved(null, marbleId)).to.throw(
+            RoomNotFoundException
+        );
+    });
+    it("If room does not have the property 'fieldMap' a GameNotStartedException should be thrown", function () {
+        room.closeGame(room);
+        expect(() => gameControls.marbleRemoved(room, marbleId)).to.throw(
+            GameNotStartedException
+        );
+    });
+});
+describe("#updateFieldMap(room, marbleId, direction)", function () {
+    beforeEach(function () {
+        let room = {
+            roomKey: randomstring.generate(5),
+            createdBy: userId,
+            players: [userId],
+            numberOfPlayers: 3,
+        };
+        room = roomControls.startGame(userId, room.roomKey);
+        room = gameControls.addFieldMap(room);
+        let marbleId = room.fieldMap[2];
+        let direction = Directions.RIGHTUP;
+    });
+    it("updateFieldMap should update moving marbles to keep track of current board", function () {
+        //Example test with RIGHTUP direction -> adds 1/1 to x/y coordinate
+        let currentMarble;
+        for (let marble in room.fieldMap) {
+            if (marble.id === marbleId) {
+                currentMarble = marble;
+            }
+        }
+
+        gameControls.updateFieldMap(room, marbleId, direction);
+        let updatedMarble;
+        for (let marble in room.fieldMap) {
+            if (marble.id === marbleId) {
+                updatedMarble = marble;
+            }
+        }
+
+        expect(currentMarble.xCoordinate).to.equal(updatedMarble.xCoordinate + 1);
+        expect(currentMarble.yCoordinate).to.equal(updatedMarble.yCoordinate + 1);
+    });
+    it("updateFieldMap should remove marbles that go beyond our borders", function () {
+        //Example test with LEFTDOWN direction -> subtracts 1/1 from x/y coordinate
+        //Test with marbleId= 0 -> first marble in first line - if this moves leftdown, it should be beyond our border an thus get deleted
+        direction = Directions.LEFTDOWN;
+        marbleId = 0;
+        let currentMarble;
+        for (let marble in room.fieldMap) {
+            if (marble.id === marbleId) {
+                currentMarble = marble;
+            }
+        }
+       
+        gameControls.updateFieldMap(room, marbleId, direction);
+
+        let updatedMarble;
+        for (let marble in room.fieldMap) {
+            if (marble.id === marbleId) {
+                updatedMarble = marble;
+            }
+        }
+        expect(currentMarble).to.not.equal(null);
+        //player= 0 means this hexagon does not belong to either player and thus being empty
+        expect(updatedMarble).to.equal(null);
+
+    });
+    it("no room -> RoomNotFoundException", function () {
+        expect(() => gameControls.updateFieldMap(null, marbleId,direction)).to.throw(
+            RoomNotFoundException
+        );
+    });
+    it("no room.fieldMap -> GameNotStartedException", function () {
+        gameControls.closeGame(room);
+        expect(() => gameControls.updateFieldMap(room, marbleId, direction)).to.throw(
+            GameNotStartedException
+        );
+    });
+    it("direction not part of Directions in GlobalVars.js -> InvalidDirectionException", function () {
+        direction = "Up";
+        expect(() => gameControls.updateFieldMap(room, marbleId, direction)).to.throw(
+            InvalidDirectionException
+        );
+    });
+    it("marbleId not a number -> GameCommandException", function () {
+        marbleId = "not a number";
+        expect(() => gameControls.updateFieldMap(room, marbleId, direction)).to.throw(
+            GameCommandException
+        );
+    });
+
 });
