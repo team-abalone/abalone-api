@@ -1,9 +1,9 @@
 import {
-  InvalidCommandException,
   GameNotStartedException,
   FieldException,
   RoomNotFoundException,
   InvalidDirectionException,
+  GameCommandException,
 } from "../Exceptions.js";
 import { FieldConfigs, Directions } from "../GlobalVars.js";
 import { v1 as uuidv1 } from "uuid";
@@ -83,14 +83,14 @@ class GameControls {
       throw new InvalidDirectionException();
     }
     if (!marbles) {
-      throw new InvalidCommandException();
+      throw new GameCommandException();
     }
     if (marbles.length > 5 || marbles.length < 1) {
-      throw new InvalidCommandException();
+      throw new GameCommandException();
     }
 
     if (!direction) {
-      throw new InvalidCommandException();
+      throw new GameCommandException();
     }
 
     //Creating object to broadcast
@@ -121,7 +121,7 @@ class GameControls {
    */
   marbleRemoved = (room, marbleId) => {
     if (isNaN(marbleId)) {
-      throw new InvalidCommandException();
+      throw new GameCommandException();
     }
     if (!room.fieldMap) {
       throw new GameNotStartedException();
@@ -173,7 +173,7 @@ class GameControls {
       throw new GameNotStartedException();
     }
     if (!fieldMap) {
-      throw new InvalidCommandException();
+      throw new GameCommandException();
     }
     if (room.fieldMap == fieldMap) {
       return true;

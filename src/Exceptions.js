@@ -39,6 +39,11 @@ class InvalidDirectionException extends GameException {
     super(`Invalid Direction detected`);
   }
 }
+class GameCommandException extends GameException {
+  constructor() {
+    super(`Invalid GameCommand`);
+  }
+}
 class RoomException extends Error {
   constructor(message) {
     super(message);
@@ -90,4 +95,5 @@ export {
   GameNotStartedException,
   FieldException,
   InvalidDirectionException,
+  GameCommandException,
 };
