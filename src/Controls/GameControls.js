@@ -7,7 +7,6 @@ import {
 } from "../Exceptions.js";
 import { FieldConfigs, Directions } from "../GlobalVars.js";
 
-
 class GameControls {
   constructor() {}
 
@@ -17,11 +16,11 @@ class GameControls {
    * @param {any} room - Gamefield and Fieldmap should be stored in corresponding Room
    */
   addFieldMap = (room) => {
-    if (!room.gameField) {
-      throw new GameNotStartedException();
-    }
     if (!room) {
       throw new RoomNotFoundException();
+    }
+    if (!room.hasOwnProperty("gameField")) {
+      throw new GameNotStartedException();
     }
     /*fieldMap will contain: 
         [
@@ -31,23 +30,22 @@ class GameControls {
         int yCoordinate - yCoordinate of the marble on the board
        ]*/
     let fieldMap = [];
-      let currentId = 0;
+    let currentId = 0;
     //Here we assign unique IDs to each marble that is currently on the board and keep the information on which marble belongs to which player
     //Iterators i and j will be stored as position x and position y
-    for (let i = 0; i < field.length; i++) {
-      for (let j = 0; j < field[i].length; j++) {
+    for (let i = 0; i < room.gameField.length; i++) {
+      for (let j = 0; j < room.gameField[i].length; j++) {
         let tempMarble = {
-          player: field[i][j], // Can be 1 or 2 at this stage of developement
+          player: room.gameField[i][j], // Can be 1 or 2 at this stage of developement
           id: currentId,
           xCoordinate: i,
           yCoordinate: j,
-          };
-          //We only keep marbles in fieldMap - not empty Hexagons
+        };
+        //We only keep marbles in fieldMap - not empty Hexagons
         if (!(tempMarble.player === 0)) {
           fieldMap.push(tempMarble);
           currentId++;
         }
-          
       }
     }
     room.fieldMap = fieldMap; //FieldMap stored in Room with every Hexagon's data
@@ -74,6 +72,12 @@ class GameControls {
    * @param {any} direction - Direction the marbles will move to (enum in frontend)
    */
   makeMove = (room, marbles, direction) => {
+    if (!marbles) {
+      throw new GameCommandException();
+    }
+    if (marbles.length > 5 || marbles.length < 1) {
+      throw new GameCommandException();
+    }
     if (!room) {
       throw new RoomNotFoundException();
     }
@@ -81,14 +85,8 @@ class GameControls {
       throw new GameNotStartedException();
     }
     //Command checks
-    if (!Directions.includes(direction)) {
+    if (!Directions.hasOwnProperty(direction)) {
       throw new InvalidDirectionException();
-    }
-    if (!marbles) {
-      throw new GameCommandException();
-    }
-    if (marbles.length > 5 || marbles.length < 1) {
-      throw new GameCommandException();
     }
 
     if (!direction) {
@@ -107,7 +105,7 @@ class GameControls {
 
     //Updating fieldMap of room
     for (let id in marblesWithDirection.ids) {
-      updateFieldMap(room, id, marblesWithDirection.direction);
+      this.updateFieldMap(room, id, marblesWithDirection.direction);
     }
     //TODO: Maybe add 'nextPlayer' to response
     return marblesWithDirection;
@@ -125,18 +123,19 @@ class GameControls {
     if (isNaN(marbleId)) {
       throw new GameCommandException();
     }
+
+    if (!room) {
+      throw new RoomNotFoundException();
+    }
     if (!room.fieldMap) {
       throw new GameNotStartedException();
     }
-    if (!room) {
-      throw new RoomNotFoundException();
+
+    for (let entry in room.fieldMap) {
+      if (entry.id === marbleId) {
+        room.fieldMap = room.fieldMap.filter((x) => x.id === entry.id);
       }
-      
-      for (let entry in room.fieldMap) {
-          if (entry.id === marbleId) {
-              room.fieldMap = room.fieldMap.filter((x) => x.id === entry.id);
-          }
-      }
+    }
   };
   /**
    * Keep track of all moves made. Will be called automatically by the makeMove()-method
@@ -146,36 +145,43 @@ class GameControls {
    * @param {any} direction - includes movement for x- and y-coordinate (defined in GlobalVars.js)
    */
   updateFieldMap = (room, marbleId, direction) => {
-    if (!room.fieldMap) {
-      throw new GameNotStartedException();
-      }
-      if (isNaN(marbleId)) {
-          throw new GameCommandException();
-      }
     if (!room) {
       throw new RoomNotFoundException();
     }
+    if (!room.fieldMap) {
+      throw new GameNotStartedException();
+    }
+    if (isNaN(marbleId)) {
+      throw new GameCommandException();
+    }
+
     if (!Directions.hasOwnProperty(direction)) {
       throw new InvalidDirectionException();
     }
-    for (let marble in room.fieldMap) {
-      if (marble.id === marbleId) {
-        marble.xCoordinate += Directions.direction[0];
-        marble.yCoordinate += Directions.direction[1];
-        //If a marble goes beyond the border, it should get removed
-        if (
-          marble.xCoordinate > room.gameField[marble.yCoordinate] ||
-          marble.xCoordinate < 0
-        ) {
-          marbleRemoved(marble.id);
-        } else if (marble.yCoordinate > 9 || marble.yCoordinate < 0) {
-          this.marbleRemoved(room, marble.id);
-        }
+
+    for (let i = 0; i < room.fieldMap.length; i++) {
+      if (room.fieldMap[i].id === marbleId) {
+        direction = this.directionConverter(direction);
+        room.fieldMap[i].xCoordinate += direction[0];
+        room.fieldMap[i].yCoordinate += direction[1];
+      }
+      if (
+        room.fieldMap[i].xCoordinate >
+          room.gameField[room.fieldMap[i].yCoordinate] ||
+        room.fieldMap[i].xCoordinate < 0
+      ) {
+        room = this.marbleRemoved(marbleId);
+      } else if (
+        room.fieldMap[i].yCoordinate > 9 ||
+        room.fieldMap[i].yCoordinate < 0
+      ) {
+        room = this.marbleRemoved(marbleId);
       }
     }
+    return room;
   };
 
-  compareField(room, fieldMap) {
+  compareField = (room, fieldMap) => {
     if (!room) {
       throw new RoomNotFoundException();
     }
@@ -190,6 +196,20 @@ class GameControls {
     } else {
       return false;
     }
-  }
+  };
+
+  directionConverter = (direction) => {
+    if (direction == "RIGHTUP") {
+      return Directions.RIGHTUP;
+    } else if (direction == "RIGHTDOWN") {
+      return Directions.RIGHTDOWN;
+    } else if (direction == "LEFTUP") {
+      return Directions.LEFTUP;
+    } else if (direction == "LEFTDOWN") {
+      return Directions.LEFTDOWN;
+    } else {
+      return Directions.NOTSET;
+    }
+  };
 }
 export default GameControls;

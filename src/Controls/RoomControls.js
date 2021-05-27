@@ -168,6 +168,19 @@ class RoomControls {
       this.closeRoom(userId, roomKey);
     }
   };
+
+  /**
+   * This will be of need for updates that occur from other Controls-classes
+   * Changes will be brought here to make them permanent
+   * @param {any} room
+   */
+  updateRooms = (room) => {
+    for (let i = 0; i < rooms.length; i++) {
+      if (rooms[i].roomKey === room.roomKey) {
+        rooms[i] = room;
+      }
+    }
+  };
 }
 
 export default RoomControls;
