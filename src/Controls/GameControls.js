@@ -12,6 +12,7 @@ class GameControls {
 
   /**
    * Assigns our fieldMap - we store which marble belongs to which player and which id is assigned to it
+   * TODO: FieldMap should get initialized by roomhost in frontend. Then we add it here to our room and broadcast it along all players
    * May change, depending on the decision if the fieldMap is built in frontend or backend - TODO: Maybe minor changes, depending on decision
    * @param {any} room - Gamefield and Fieldmap should be stored in corresponding Room
    */
@@ -51,7 +52,24 @@ class GameControls {
     room.fieldMap = fieldMap; //FieldMap stored in Room with every Hexagon's data
     return room;
   };
-
+    /*
+     * addFieldMapViaFrontend = (room, fieldMap){
+     * let fieldMap[];
+     * let tempMarble;
+     * for(let entry in fieldMap){
+     *  tempMarble = {
+     *  player: marble.player,
+     *  id: marble.id,
+     *  xCoordinate: marble.xCoordinate,
+     *  yCoordinate: marble.yCoordinate,
+     *  zCoordinate: marble.zCoordinate
+     *  };
+     *  fieldMap.push(tempMarble);
+     * }
+     * room.push(fieldMap);
+     * }
+     * 
+     * 
   /**
    * Removes fieldMap from our room. Other gamerequests will not work after not having a fieldMap assigned to the room.
    * @param {any} room
@@ -91,8 +109,8 @@ class GameControls {
 
     if (!direction) {
       throw new GameCommandException();
-    }
-
+      }
+    direction = this.directionConverter(direction);
     //Creating object to broadcast
     let ids = [];
     for (let i = 0; i < marbles.length; i++) {
@@ -107,7 +125,7 @@ class GameControls {
     for (let id in marblesWithDirection.ids) {
       this.updateFieldMap(room, id, marblesWithDirection.direction);
     }
-    //TODO: Maybe add 'nextPlayer' to response
+    //TODO: Maybe add 'nextPlayer' to response; Run Checks after execution
     return marblesWithDirection;
     /*Eventually broadcasts a response like this to all Sockets:
        {"commandCode":10,"toMove":{"ids":[1,2,3],"direction":"LEFTUP"}}
@@ -158,10 +176,10 @@ class GameControls {
     if (!Directions.hasOwnProperty(direction)) {
       throw new InvalidDirectionException();
     }
-
+    direction = this.directionConverter(direction);
     for (let i = 0; i < room.fieldMap.length; i++) {
       if (room.fieldMap[i].id === marbleId) {
-        direction = this.directionConverter(direction);
+        
         room.fieldMap[i].xCoordinate += direction[0];
         room.fieldMap[i].yCoordinate += direction[1];
       }
