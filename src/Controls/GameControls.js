@@ -39,7 +39,7 @@ closeGame = (room) => {
     if (!marbles) {
       throw new GameCommandException();
     }
-    if (marbles.length > 5 || marbles.length < 1) {
+    if (marbles.length > 3 || marbles.length < 1) {
       throw new GameCommandException();
     }
     if (!room) {

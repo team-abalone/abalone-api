@@ -130,12 +130,14 @@ server.on("connection", function (socket) {
             });
         } else if (commandCode === InCommandCodes.StartGame) {
             let room = roomControls.startGame(userId);
-
+            let players = [];
+            
             // Notify creator of room about successful game start.
             socket.write(
                 sendConvertedResponse({
                     commandCode: OutCommandCodes.GameStarted,
                     gameField: room.gameField,
+                    players: room.players
                 })
             );
 
