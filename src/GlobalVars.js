@@ -6,7 +6,7 @@ const InCommandCodes = {
   SendChatMessage: 50,
   GetUserId: 60,
   StartGame: 70,
-  CompareField: 80,
+  CloseGame: 80,
 };
 
 const OutCommandCodes = {
@@ -17,7 +17,7 @@ const OutCommandCodes = {
   RoomClosed: 50,
   RoomJoinedOther: 60,
   MadeMove: 70,
-  FieldComparison: 80,
+  CloseGame: 80,
 };
 
 const GameParameters = {

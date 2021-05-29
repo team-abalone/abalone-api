@@ -79,12 +79,11 @@ class RoomControls {
 
   /**
    * Starts the game with the given roomKey.
-   * TODO: roomKey might be redundant, because of the possibility to find rooms via userIds
    * @param {*} userId
    * @param {*} roomKey
    */
-  startGame = (userId, roomKey) => {
-    let room = this.findRoomByRoomKey(roomKey);
+    startGame = (userId) => {
+        let room = this.findRoomByPlayer(userId);
 
     if (!room) {
       throw new RoomNotFoundException(roomKey);
@@ -103,7 +102,11 @@ class RoomControls {
     });
 
     room.gameField = field;
-
+        for (let i = 0; i < this.rooms.length; i++) {
+            if (this.rooms[i].id === room.id) {
+                this.rooms[i] = room;
+            }
+        }    
     return room;
   };
 

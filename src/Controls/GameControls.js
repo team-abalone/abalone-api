@@ -8,79 +8,25 @@ import {
 import { FieldConfigs, Directions } from "../GlobalVars.js";
 
 class GameControls {
-  constructor() {}
-
-  /**
-   * Assigns our fieldMap - we store which marble belongs to which player and which id is assigned to it
-   * TODO: FieldMap should get initialized by roomhost in frontend. Then we add it here to our room and broadcast it along all players
-   * May change, depending on the decision if the fieldMap is built in frontend or backend - TODO: Maybe minor changes, depending on decision
-   * @param {any} room - Gamefield and Fieldmap should be stored in corresponding Room
-   */
-  addFieldMap = (room) => {
-    if (!room) {
-      throw new RoomNotFoundException();
-    }
-    if (!room.hasOwnProperty("gameField")) {
-      throw new GameNotStartedException();
-    }
-    /*fieldMap will contain: 
-        [
-        int: player - the player the marble belongs to,
-        int//uuid - the marbles unique ID,
-        int xCoordinate - xCoordinate of the marble on the board,
-        int yCoordinate - yCoordinate of the marble on the board
-       ]*/
-    let fieldMap = [];
-    let currentId = 0;
-    //Here we assign unique IDs to each marble that is currently on the board and keep the information on which marble belongs to which player
-    //Iterators i and j will be stored as position x and position y
-    for (let i = 0; i < room.gameField.length; i++) {
-      for (let j = 0; j < room.gameField[i].length; j++) {
-        let tempMarble = {
-          player: room.gameField[i][j], // Can be 1 or 2 at this stage of developement
-          id: currentId,
-          xCoordinate: i,
-          yCoordinate: j,
-        };
-        //We only keep marbles in fieldMap - not empty Hexagons
-        if (!(tempMarble.player === 0)) {
-          fieldMap.push(tempMarble);
-          currentId++;
-        }
-      }
-    }
-    room.fieldMap = fieldMap; //FieldMap stored in Room with every Hexagon's data
-    return room;
-  };
-    /*
-     * addFieldMapViaFrontend = (room, fieldMap){
-     * let fieldMap[];
-     * let tempMarble;
-     * for(let entry in fieldMap){
-     *  tempMarble = {
-     *  player: marble.player,
-     *  id: marble.id,
-     *  xCoordinate: marble.xCoordinate,
-     *  yCoordinate: marble.yCoordinate,
-     *  zCoordinate: marble.zCoordinate
-     *  };
-     *  fieldMap.push(tempMarble);
-     * }
-     * room.push(fieldMap);
-     * }
-     * 
-     * 
-  /**
-   * Removes fieldMap from our room. Other gamerequests will not work after not having a fieldMap assigned to the room.
+    constructor() { }
+    
+  
+    /**
+   * Removes gameField from our room. Other gamerequests will not work after not having a gameField assigned to the room.
    * @param {any} room
    */
-  closeGame = (room) => {
-    if (!room.fieldMap) {
-      throw new GameNotStartedException();
+closeGame = (room) => {
+    if (!(room)) {
+        throw new RoomNotFoundException();
     }
-    delete room.fieldMap;
+    if (!room.gameField) {
+          throw new GameNotStartedException();
+      }
+    delete room.gameField;
+
     return room;
-  };
+    };
+
   /**
    * This function will basically broadcast a players move to every other player.
    * All checks regarding the possibility of making that move are already done in frontend.
@@ -99,9 +45,6 @@ class GameControls {
     if (!room) {
       throw new RoomNotFoundException();
     }
-    if (!room.fieldMap) {
-      throw new GameNotStartedException();
-    }
     //Command checks
     if (!Directions.hasOwnProperty(direction)) {
       throw new InvalidDirectionException();
@@ -110,7 +53,7 @@ class GameControls {
     if (!direction) {
       throw new GameCommandException();
       }
-    direction = this.directionConverter(direction);
+    
     //Creating object to broadcast
     let ids = [];
     for (let i = 0; i < marbles.length; i++) {
@@ -121,95 +64,23 @@ class GameControls {
       direction: direction,
     };
 
-    //Updating fieldMap of room
-    for (let id in marblesWithDirection.ids) {
-      this.updateFieldMap(room, id, marblesWithDirection.direction);
-    }
-    //TODO: Maybe add 'nextPlayer' to response; Run Checks after execution
     return marblesWithDirection;
     /*Eventually broadcasts a response like this to all Sockets:
        {"commandCode":10,"toMove":{"ids":[1,2,3],"direction":"LEFTUP"}}
         */
   };
-
-  /**
-   * Keeping track on all active marbles currently on our board, we have to remove every entry in fieldMap which gets pushed out of the field
-   * @param {any} room - current room
-   * @param {any} marbleId -int of marble that is being pushed out
-   */
-  marbleRemoved = (room, marbleId) => {
-    if (isNaN(marbleId)) {
-      throw new GameCommandException();
-    }
-
+   
+  compareField = (room,gameField) => {
     if (!room) {
       throw new RoomNotFoundException();
-    }
-    if (!room.fieldMap) {
-      throw new GameNotStartedException();
-    }
-
-    for (let entry in room.fieldMap) {
-      if (entry.id === marbleId) {
-        room.fieldMap = room.fieldMap.filter((x) => x.id === entry.id);
       }
-    }
-  };
-  /**
-   * Keep track of all moves made. Will be called automatically by the makeMove()-method
-   * Can call marbleRemoved-method() if neccessary
-   * @param {any} room - current room
-   * @param {any} marbleId - marble that is being updated (single marble)
-   * @param {any} direction - includes movement for x- and y-coordinate (defined in GlobalVars.js)
-   */
-  updateFieldMap = (room, marbleId, direction) => {
-    if (!room) {
-      throw new RoomNotFoundException();
-    }
-    if (!room.fieldMap) {
+      if (!room.gameField) {
       throw new GameNotStartedException();
-    }
-    if (isNaN(marbleId)) {
+      }
+      if (!gameField) {
       throw new GameCommandException();
-    }
-
-    if (!Directions.hasOwnProperty(direction)) {
-      throw new InvalidDirectionException();
-    }
-    direction = this.directionConverter(direction);
-    for (let i = 0; i < room.fieldMap.length; i++) {
-      if (room.fieldMap[i].id === marbleId) {
-        
-        room.fieldMap[i].xCoordinate += direction[0];
-        room.fieldMap[i].yCoordinate += direction[1];
       }
-      if (
-        room.fieldMap[i].xCoordinate >
-          room.gameField[room.fieldMap[i].yCoordinate] ||
-        room.fieldMap[i].xCoordinate < 0
-      ) {
-        room = this.marbleRemoved(marbleId);
-      } else if (
-        room.fieldMap[i].yCoordinate > 9 ||
-        room.fieldMap[i].yCoordinate < 0
-      ) {
-        room = this.marbleRemoved(marbleId);
-      }
-    }
-    return room;
-  };
-
-  compareField = (room, fieldMap) => {
-    if (!room) {
-      throw new RoomNotFoundException();
-    }
-    if (!room.fieldMap) {
-      throw new GameNotStartedException();
-    }
-    if (!fieldMap) {
-      throw new GameCommandException();
-    }
-    if (room.fieldMap == fieldMap) {
+      if (room.gameField == gameField) {
       return true;
     } else {
       return false;
