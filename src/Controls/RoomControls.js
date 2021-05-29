@@ -8,7 +8,7 @@ import {
   AlreadyInRoomException,
   InvalidCommandException,
 } from "../Exceptions.js";
-import { FieldConfigs } from "../GlobalVars.js";
+import { FieldConfigs, InitialFieldTypes } from "../GlobalVars.js";
 
 /**
  * Contains logic implementations, regarding
@@ -26,7 +26,7 @@ class RoomControls {
    * @param {*} userId The id of the user to create the room for.
    * @returns The roomKey of the created room.
    */
-  createRoom = (userId, numberOfPlayers) => {
+  createRoom = (userId, numberOfPlayers, gameFieldType) => {
     let existing = this.findRoomByPlayer(userId);
 
     // Close existing room if exists.
@@ -44,6 +44,7 @@ class RoomControls {
       createdBy: userId,
       players: [userId],
       numberOfPlayers: numberOfPlayers,
+      gameFieldType,
     };
 
     this.rooms.push(room);
@@ -94,11 +95,19 @@ class RoomControls {
     }
 
     // For now we always return the same field.
+    let initField;
 
-    var field = Object.keys(FieldConfigs.TwoPlayers.Default).map(function (
-      key
-    ) {
-      return FieldConfigs.TwoPlayers.Default[key];
+    switch (room.gameFieldType) {
+      case InitialFieldTypes.Default:
+        initField = FieldConfigs.TwoPlayers.Default;
+        break;
+      default:
+        initField = FieldConfigs.TwoPlayers.GermanDaisy;
+        break;
+    }
+
+    var field = Object.keys(initField).map(function (key) {
+      return initField[key];
     });
 
     room.gameField = field;

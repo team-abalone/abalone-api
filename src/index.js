@@ -56,6 +56,7 @@ server.on("connection", function (socket) {
       roomKey,
       marbles,
       direction,
+      gameFieldType
     } = convertedData;
 
     if (userId && !socket.name) {
@@ -82,7 +83,11 @@ server.on("connection", function (socket) {
                 })
             );
         } else if (commandCode === InCommandCodes.CreateRoom) {
-            let roomKey = roomControls.createRoom(userId, numberOfPlayers);
+            let roomKey = roomControls.createRoom(
+          userId,
+          numberOfPlayers,
+          gameFieldType
+        );
 
             // Send roomKey to room creator.
             socket.write(
@@ -131,25 +136,31 @@ server.on("connection", function (socket) {
         } else if (commandCode === InCommandCodes.StartGame) {
             let room = roomControls.startGame(userId);
             let players = [];
-            
-            // Notify creator of room about successful game start.
-            socket.write(
-                sendConvertedResponse({
-                    commandCode: OutCommandCodes.GameStarted,
-                    gameField: room.gameField,
-                    players: room.players
-                })
-            );
 
-            // Notify other players in room about game start.
-            broadCastToRoom(room, userId, {
-                commandCode: OutCommandCodes.GameStarted,
-                gameField: room.gameField,
-            });
-        } else if (commandCode === InCommandCodes.SendChatMessage) {
-            // TODO: Fix or remove, chat not that important right now.
-            chatControls.chatFunction(data, rooms, socket);
-        } else if (commandCode === InCommandCodes.MakeMove) {
+        // Notify creator of room about successful game start.
+        socket.write(
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.GameStarted,
+            gameField: room.gameField,
+            roomKey: room?.roomKey,
+            players: room?.players,
+            createdBy: room?.createdBy,
+            numberOfPlayers: room?.numberOfPlayers,
+          })
+        );
+
+        // Notify other players in room about game start.
+        broadCastToRoom(room, userId, {
+          commandCode: OutCommandCodes.GameStarted,
+          gameField: room.gameField,
+          roomKey: room?.roomKey,
+          players: room?.players,
+          createdBy: room?.createdBy,
+          numberOfPlayers: room?.numberOfPlayers,
+        });
+      } else if (commandCode === InCommandCodes.SendChatMessage) {
+        // TODO: Fix or remove, chat not that important right now.
+        chatControls.chatFunction(data, rooms, socket);} else if (commandCode === InCommandCodes.MakeMove) {
             //Broadcast marbles that are to be moved to other players
             broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
                 commandCode: OutCommandCodes.MadeMove,
