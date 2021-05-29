@@ -56,6 +56,7 @@ server.on("connection", function (socket) {
       roomKey,
       marbles,
       direction,
+      gameFieldType
     } = convertedData;
 
     if (userId && !socket.name) {
@@ -82,7 +83,11 @@ server.on("connection", function (socket) {
                 })
             );
         } else if (commandCode === InCommandCodes.CreateRoom) {
-            let roomKey = roomControls.createRoom(userId, numberOfPlayers);
+            let roomKey = roomControls.createRoom(
+          userId,
+          numberOfPlayers,
+          gameFieldType
+        );
 
             // Send roomKey to room creator.
             socket.write(
@@ -131,7 +136,7 @@ server.on("connection", function (socket) {
         } else if (commandCode === InCommandCodes.StartGame) {
             let room = roomControls.startGame(userId);
             let players = [];
-            
+
             // Notify creator of room about successful game start.
             socket.write(
                 sendConvertedResponse({
