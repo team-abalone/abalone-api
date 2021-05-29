@@ -26,7 +26,7 @@ class RoomControls {
    * @param {*} userId The id of the user to create the room for.
    * @returns The roomKey of the created room.
    */
-  createRoom = (userId, numberOfPlayers, gameFieldType) => {
+  createRoom = (userId, numberOfPlayers, userName, gameFieldType) => {
     let existing = this.findRoomByPlayer(userId);
 
     // Close existing room if exists.
@@ -45,6 +45,7 @@ class RoomControls {
       players: [userId],
       numberOfPlayers: numberOfPlayers,
       gameFieldType,
+      playerMap: { userId: userName },
     };
 
     this.rooms.push(room);
@@ -56,7 +57,7 @@ class RoomControls {
    * @param {*} userId The userId of the user to create the room for.
    * @param {*} roomKey The roomKey of the room to join     *
    */
-  joinRoom = (userId, roomKey) => {
+  joinRoom = (userId, roomKey, userName) => {
     let roomToJoin = this.rooms.find((r) => r.roomKey == roomKey);
 
     if (!roomToJoin) {
@@ -73,6 +74,7 @@ class RoomControls {
 
     if (!roomToJoin.players.includes(userId)) {
       roomToJoin.players.push(userId);
+      roomToJoin.playerMap[userId] = userName;
     }
 
     return roomToJoin;
@@ -83,8 +85,8 @@ class RoomControls {
    * @param {*} userId
    * @param {*} roomKey
    */
-    startGame = (userId) => {
-        let room = this.findRoomByPlayer(userId);
+  startGame = (userId) => {
+    let room = this.findRoomByPlayer(userId);
 
     if (!room) {
       throw new RoomNotFoundException(roomKey);
@@ -111,11 +113,11 @@ class RoomControls {
     });
 
     room.gameField = field;
-        for (let i = 0; i < this.rooms.length; i++) {
-            if (this.rooms[i].id === room.id) {
-                this.rooms[i] = room;
-            }
-        }    
+    for (let i = 0; i < this.rooms.length; i++) {
+      if (this.rooms[i].id === room.id) {
+        this.rooms[i] = room;
+      }
+    }
     return room;
   };
 

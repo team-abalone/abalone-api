@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="6472de0c-d5ef-44f4-94a7-13b433a3455c" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1tD8OhcHXVy8mhhWdNqJlGLoFAs" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="6472de0c-d5ef-44f4-94a7-13b433a3455c" name="Default Changelist" comment="" />
+      <created>1622292268755</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1622292268755</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="134" y="87" key="MergeDialog" timestamp="1622292812382">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="134" y="87" key="MergeDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1622292812382" />
+    <state x="598" y="281" key="MultipleFileMergeDialog" timestamp="1622292812394">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="598" y="281" key="MultipleFileMergeDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1622292812394" />
+    <state x="662" y="254" key="VcsDiffUtil.ChangesDialog" timestamp="1622292511143">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="662" y="254" key="VcsDiffUtil.ChangesDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1622292511143" />
+    <state x="622" y="229" width="672" height="678" key="search.everywhere.popup" timestamp="1622292683027">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="622" y="229" width="672" height="678" key="search.everywhere.popup/0.0.1920.1040@0.0.1920.1040" timestamp="1622292683027" />
+  </component>
+</project>

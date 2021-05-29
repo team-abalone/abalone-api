@@ -56,7 +56,8 @@ server.on("connection", function (socket) {
       roomKey,
       marbles,
       direction,
-      gameFieldType
+      gameFieldType,
+      userName,
     } = convertedData;
 
     if (userId && !socket.name) {
@@ -70,72 +71,75 @@ server.on("connection", function (socket) {
     try {
       // Needs to be the first action the app calls, before everything else,
       // assigns the user a uuid, that needs to be included on each request afterwards
-        if (commandCode === InCommandCodes.GetUserId) {
-            userId = uuidv1();
+      if (commandCode === InCommandCodes.GetUserId) {
+        userId = uuidv1();
 
-            // For finding appropriate socket later.
-            socket.name = userId;
+        // For finding appropriate socket later.
+        socket.name = userId;
 
-            socket.write(
-                sendConvertedResponse({
-                    commandCode: OutCommandCodes.IdInitialized,
-                    userId,
-                })
-            );
-        } else if (commandCode === InCommandCodes.CreateRoom) {
-            let roomKey = roomControls.createRoom(
+        socket.write(
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.IdInitialized,
+            userId,
+          })
+        );
+      } else if (commandCode === InCommandCodes.CreateRoom) {
+        let roomKey = roomControls.createRoom(
           userId,
           numberOfPlayers,
+          userName,
           gameFieldType
         );
 
-            // Send roomKey to room creator.
-            socket.write(
-                sendConvertedResponse({
-                    commandCode: OutCommandCodes.RoomCreated,
-                    roomKey,
-                })
-            );
-        } else if (commandCode === InCommandCodes.JoinRoom) {
-            let room = roomControls.joinRoom(userId, roomKey);
+        // Send roomKey to room creator.
+        socket.write(
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.RoomCreated,
+            roomKey,
+          })
+        );
+      } else if (commandCode === InCommandCodes.JoinRoom) {
+        let room = roomControls.joinRoom(userId, roomKey, userName);
 
-            // Notify current user about his successful join.
-            socket.write(
-                sendConvertedResponse({
-                    commandCode: OutCommandCodes.RoomJoined,
-                    roomKey: room?.roomKey,
-                    players: room?.players,
-                    createdBy: room?.createdBy,
-                    numberOfPlayers: room?.numberOfPlayers,
-                })
-            );
+        // Notify current user about his successful join.
+        socket.write(
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.RoomJoined,
+            roomKey: room?.roomKey,
+            players: room?.players,
+            createdBy: room?.createdBy,
+            numberOfPlayers: room?.numberOfPlayers,
+            roomMap: room?.roomMap,
+          })
+        );
 
-            // Notify other players in room about room join.
-            broadCastToRoom(room, userId, {
-                commandCode: OutCommandCodes.RoomJoinedOther,
-                roomKey: room?.roomKey,
-                players: room?.players,
-                createdBy: room?.createdBy,
-                numberOfPlayers: room?.numberOfPlayers,
-            });
-        } else if (commandCode === InCommandCodes.CloseRoom) {
-            let room = roomControls.closeRoom(userId, roomKey);
+        // Notify other players in room about room join.
+        broadCastToRoom(room, userId, {
+          commandCode: OutCommandCodes.RoomJoinedOther,
+          roomKey: room?.roomKey,
+          players: room?.players,
+          createdBy: room?.createdBy,
+          numberOfPlayers: room?.numberOfPlayers,
+          roomMap: room?.roomMap,
+        });
+      } else if (commandCode === InCommandCodes.CloseRoom) {
+        let room = roomControls.closeRoom(userId, roomKey);
 
-            if (room) {
-                socket.write(
-                    sendConvertedResponse({
-                        commandCode: OutCommandCodes.RoomClosed,
-                    })
-                );
-            }
+        if (room) {
+          socket.write(
+            sendConvertedResponse({
+              commandCode: OutCommandCodes.RoomClosed,
+            })
+          );
+        }
 
-            // Notify other players in room about room closal.
-            broadCastToRoom(room, userId, {
-                commandCode: OutCommandCodes.RoomClosed,
-            });
-        } else if (commandCode === InCommandCodes.StartGame) {
-            let room = roomControls.startGame(userId);
-            let players = [];
+        // Notify other players in room about room closal.
+        broadCastToRoom(room, userId, {
+          commandCode: OutCommandCodes.RoomClosed,
+        });
+      } else if (commandCode === InCommandCodes.StartGame) {
+        let room = roomControls.startGame(userId);
+        let players = [];
 
         // Notify creator of room about successful game start.
         socket.write(
@@ -160,26 +164,27 @@ server.on("connection", function (socket) {
         });
       } else if (commandCode === InCommandCodes.SendChatMessage) {
         // TODO: Fix or remove, chat not that important right now.
-        chatControls.chatFunction(data, rooms, socket);} else if (commandCode === InCommandCodes.MakeMove) {
-            //Broadcast marbles that are to be moved to other players
-            broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
-                commandCode: OutCommandCodes.MadeMove,
-                toMove: gameControls.makeMove(
-                    roomControls.findRoomByPlayer(userId),
-                    marbles,
-                    direction
-                ),
-            });
-        } else if (commandCode === InCommandCodes.CloseGame) {
-            roomControls.updateRooms(gameControls.closeGame(roomControls.findRoomByPlayer(userId)));
-            socket.write(
-                sendConvertedResponse(
-                    {
-                        commandCode: OutCommandCodes.CloseGame,
-                        message: `Game has been closed. Returning to lobby.`
-                    }
-                )
-            );
+        chatControls.chatFunction(data, rooms, socket);
+      } else if (commandCode === InCommandCodes.MakeMove) {
+        //Broadcast marbles that are to be moved to other players
+        broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
+          commandCode: OutCommandCodes.MadeMove,
+          toMove: gameControls.makeMove(
+            roomControls.findRoomByPlayer(userId),
+            marbles,
+            direction
+          ),
+        });
+      } else if (commandCode === InCommandCodes.CloseGame) {
+        roomControls.updateRooms(
+          gameControls.closeGame(roomControls.findRoomByPlayer(userId))
+        );
+        socket.write(
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.CloseGame,
+            message: `Game has been closed. Returning to lobby.`,
+          })
+        );
       } else {
         throw new InvalidCommandException();
       }
