@@ -109,6 +109,7 @@ server.on("connection", function (socket) {
             players: room?.players,
             createdBy: room?.createdBy,
             numberOfPlayers: room?.numberOfPlayers,
+            roomMap: room?.roomMap,
           })
         );
 
@@ -119,6 +120,7 @@ server.on("connection", function (socket) {
           players: room?.players,
           createdBy: room?.createdBy,
           numberOfPlayers: room?.numberOfPlayers,
+          roomMap: room?.roomMap,
         });
       } else if (commandCode === InCommandCodes.CloseRoom) {
         let room = roomControls.closeRoom(userId, roomKey);
