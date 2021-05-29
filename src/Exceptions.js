@@ -13,7 +13,37 @@ class InvalidCommandException extends ServerException {
     super(`Command with invalid command-structure submitted.`);
   }
 }
+class GameException extends Error {
+  constructor(message) {
+    super(message);
+    this.response = {
+      Exception: this.constructor.name,
+      Message: message,
+    };
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
 
+class GameNotStartedException extends GameException {
+  constructor() {
+    super(`Currently, there is no active game.`);
+  }
+}
+class FieldException extends GameException {
+  constructor() {
+    super(`Invalid field-structure detected.`);
+  }
+}
+class InvalidDirectionException extends GameException {
+  constructor() {
+    super(`Invalid Direction detected`);
+  }
+}
+class GameCommandException extends GameException {
+  constructor() {
+    super(`Invalid GameCommand`);
+  }
+}
 class RoomException extends Error {
   constructor(message) {
     super(message);
@@ -61,4 +91,9 @@ export {
   AlreadyInRoomException,
   RoomException,
   ServerException,
+  GameException,
+  GameNotStartedException,
+  FieldException,
+  InvalidDirectionException,
+  GameCommandException,
 };

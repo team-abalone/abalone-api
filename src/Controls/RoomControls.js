@@ -82,8 +82,8 @@ class RoomControls {
    * @param {*} userId
    * @param {*} roomKey
    */
-  startGame = (userId, roomKey) => {
-    let room = this.findRoomByRoomKey(roomKey);
+    startGame = (userId) => {
+        let room = this.findRoomByPlayer(userId);
 
     if (!room) {
       throw new RoomNotFoundException(roomKey);
@@ -102,7 +102,11 @@ class RoomControls {
     });
 
     room.gameField = field;
-
+        for (let i = 0; i < this.rooms.length; i++) {
+            if (this.rooms[i].id === room.id) {
+                this.rooms[i] = room;
+            }
+        }    
     return room;
   };
 
@@ -165,6 +169,19 @@ class RoomControls {
     //If host leaves, the room should close.
     if (createdBy === userId || players.length < 1) {
       this.closeRoom(userId, roomKey);
+    }
+  };
+
+  /**
+   * This will be of need for updates that occur from other Controls-classes
+   * Changes will be brought here to make them permanent
+   * @param {any} room
+   */
+  updateRooms = (room) => {
+    for (let i = 0; i < rooms.length; i++) {
+      if (rooms[i].roomKey === room.roomKey) {
+        rooms[i] = room;
+      }
     }
   };
 }

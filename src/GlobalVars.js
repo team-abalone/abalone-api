@@ -6,6 +6,7 @@ const InCommandCodes = {
   SendChatMessage: 50,
   GetUserId: 60,
   StartGame: 70,
+  CloseGame: 80,
 };
 
 const OutCommandCodes = {
@@ -15,6 +16,8 @@ const OutCommandCodes = {
   RoomCreated: 40,
   RoomClosed: 50,
   RoomJoinedOther: 60,
+  MadeMove: 70,
+  CloseGame: 80,
 };
 
 const GameParameters = {
@@ -61,6 +64,13 @@ const FieldConfigs = {
     ],
   },
 };
+const Directions = {
+  RIGHTUP: [1, 1],
+  LEFTUP: [-1, 1],
+  LEFTDOWN: [-1, -1],
+  RIGHTDOWN: [1, -1],
+  NOTSET: [0, 0],
+};
 
 export {
   InCommandCodes,
@@ -68,4 +78,5 @@ export {
   GameParameters,
   InitialFieldTypes,
   FieldConfigs,
+  Directions,
 };
