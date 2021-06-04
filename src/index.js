@@ -4,7 +4,11 @@ const PORT = process.env.PORT || 5001;
 const host = process.env.HOST || "0.0.0.0";
 
 import { RoomControls, ChatControls, GameControls } from "./Controls/index.js";
-import { InCommandCodes, OutCommandCodes } from "./GlobalVars.js";
+import {
+  InCommandCodes,
+  OutCommandCodes,
+  ExceptionCodes,
+} from "./GlobalVars.js";
 
 import { v1 as uuidv1 } from "uuid";
 
@@ -193,13 +197,28 @@ server.on("connection", function (socket) {
 
       //Separation may be of need later on - TODO: update if needed or remove if there will not be a significant difference
       if (err instanceof RoomException) {
-        socket.write(sendConvertedResponse(err.response));
+        socket.write(
+          sendConvertedResponse({
+            commandCode: ExceptionCodes.RoomException,
+            response: err.response,
+          })
+        );
         console.error(err);
       } else if (err instanceof ServerException) {
-        socket.write(sendConvertedResponse(err.response));
+        socket.write(
+          sendConvertedResponse({
+            commandCode: ExceptionCodes.ServerException,
+            response: err.response,
+          })
+        );
         console.error(err);
       } else if (err instanceof GameException) {
-        socket.write(sendConvertedResponse(err.response));
+        socket.write(
+          sendConvertedResponse({
+            commandCode: ExceptionCodes.GameException,
+            response: err.response,
+          })
+        );
       } else {
         socket.write(sendConvertedResponse(err.response));
         console.error(err);
