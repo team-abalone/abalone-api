@@ -27,8 +27,8 @@ const GameParameters = {
 };
 
 const InitialFieldTypes = {
-  Default: 10,
-  GermanDaisy: 20,
+  GermanDaisy: 10,
+  Default: 20,
 };
 
 /**

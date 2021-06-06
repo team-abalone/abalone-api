@@ -45,7 +45,7 @@ class RoomControls {
       players: [userId],
       numberOfPlayers: numberOfPlayers,
       gameFieldType,
-      playerMap: { userId: userName },
+      playerMap: { [userId]: userName },
     };
 
     this.rooms.push(room);

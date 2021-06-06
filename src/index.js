@@ -109,7 +109,7 @@ server.on("connection", function (socket) {
             players: room?.players,
             createdBy: room?.createdBy,
             numberOfPlayers: room?.numberOfPlayers,
-            roomMap: room?.roomMap,
+            playerMap: room?.playerMap,
           })
         );
 
@@ -120,7 +120,7 @@ server.on("connection", function (socket) {
           players: room?.players,
           createdBy: room?.createdBy,
           numberOfPlayers: room?.numberOfPlayers,
-          roomMap: room?.roomMap,
+          playerMap: room?.playerMap,
         });
       } else if (commandCode === InCommandCodes.CloseRoom) {
         let room = roomControls.closeRoom(userId, roomKey);
@@ -150,6 +150,7 @@ server.on("connection", function (socket) {
             players: room?.players,
             createdBy: room?.createdBy,
             numberOfPlayers: room?.numberOfPlayers,
+            playerMap: room?.playerMap,
           })
         );
 
@@ -161,6 +162,7 @@ server.on("connection", function (socket) {
           players: room?.players,
           createdBy: room?.createdBy,
           numberOfPlayers: room?.numberOfPlayers,
+          playerMap: room?.playerMap,
         });
       } else if (commandCode === InCommandCodes.SendChatMessage) {
         // TODO: Fix or remove, chat not that important right now.
