@@ -172,15 +172,17 @@ server.on("connection", function (socket) {
         // TODO: Fix or remove, chat not that important right now.
         chatControls.chatFunction(data, rooms, socket);
       } else if (commandCode === InCommandCodes.MakeMove) {
-          //If move is not valid, an exception will be thrown here
-          gameControls.makeMove(roomControls.findRoomByPlayer(userId), marbles, direction);
+        //If move is not valid, an exception will be thrown here
+        gameControls.makeMove(
+          roomControls.findRoomByPlayer(userId),
+          marbles,
+          direction
+        );
         //Broadcast marbles and direction that are to be moved to other players
-          broadCastToRoom(roomControls.findRoomByPlayer(userId), userId,
-              {
-              commandCode: OutCommandCodes.MadeMove,
-              ids: marbles,
-              direction: direction
-                
+        broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
+          commandCode: OutCommandCodes.MadeMove,
+          ids: marbles,
+          direction: direction,
         });
       } else if (commandCode === InCommandCodes.CloseGame) {
         roomControls.updateRooms(
@@ -234,6 +236,8 @@ server.on("connection", function (socket) {
   });
 
   socket.once("close", function (ev) {
+    sockets = sockets.filter((x) => x.name !== socket.name);
+
     // Probably not a good idea to close room with socket disconnect,
     // as theoretically the client can loose connection and reconnect.
     // Maybe implement a timeout of x seconds and close room after that.
@@ -289,8 +293,11 @@ const broadCastToRoom = (room, excludeUserId, payload) => {
     (s) => room.players.includes(s.name) && s.name !== excludeUserId
   );
 
-  console.log(payload);
   otherPlayers.forEach((op) => {
-    op.write(sendConvertedResponse(payload));
+    try {
+      op.write(sendConvertedResponse(payload));
+    } catch (ex) {
+      console.log("exception on write: " + ex.message);
+    }
   });
 };
