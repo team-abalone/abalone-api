@@ -20,6 +20,13 @@ const OutCommandCodes = {
   CloseGame: 80,
 };
 
+const ExceptionCodes = {
+  ServerException: 100,
+  GameException: 200,
+  ChatException: 300,
+  RoomException: 400,
+};
+
 const GameParameters = {
   MinPlayers: 2,
   MaxPlayers: 6,
@@ -79,4 +86,5 @@ export {
   InitialFieldTypes,
   FieldConfigs,
   Directions,
+  ExceptionCodes,
 };

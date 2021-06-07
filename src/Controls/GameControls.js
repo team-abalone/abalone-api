@@ -53,21 +53,6 @@ closeGame = (room) => {
     if (!direction) {
       throw new GameCommandException();
       }
-    
-    //Creating object to broadcast
-    let ids = [];
-    for (let i = 0; i < marbles.length; i++) {
-      ids.push(marbles[i]);
-    }
-    let marblesWithDirection = {
-      ids: ids,
-      direction: direction,
-    };
-
-    return marblesWithDirection;
-    /*Eventually broadcasts a response like this to all Sockets:
-       {"commandCode":10,"toMove":{"ids":[1,2,3],"direction":"LEFTUP"}}
-        */
   };
    
   compareField = (room,gameField) => {

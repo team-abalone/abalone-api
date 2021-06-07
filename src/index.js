@@ -4,7 +4,11 @@ const PORT = process.env.PORT || 5001;
 const host = process.env.HOST || "0.0.0.0";
 
 import { RoomControls, ChatControls, GameControls } from "./Controls/index.js";
-import { InCommandCodes, OutCommandCodes } from "./GlobalVars.js";
+import {
+  InCommandCodes,
+  OutCommandCodes,
+  ExceptionCodes,
+} from "./GlobalVars.js";
 
 import { v1 as uuidv1 } from "uuid";
 
@@ -168,14 +172,15 @@ server.on("connection", function (socket) {
         // TODO: Fix or remove, chat not that important right now.
         chatControls.chatFunction(data, rooms, socket);
       } else if (commandCode === InCommandCodes.MakeMove) {
-        //Broadcast marbles that are to be moved to other players
-        broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
-          commandCode: OutCommandCodes.MadeMove,
-          toMove: gameControls.makeMove(
-            roomControls.findRoomByPlayer(userId),
-            marbles,
-            direction
-          ),
+          //If move is not valid, an exception will be thrown here
+          gameControls.makeMove(roomControls.findRoomByPlayer(userId), marbles, direction);
+        //Broadcast marbles and direction that are to be moved to other players
+          broadCastToRoom(roomControls.findRoomByPlayer(userId), userId,
+              {
+              commandCode: OutCommandCodes.MadeMove,
+              ids: marbles,
+              direction: direction
+                
         });
       } else if (commandCode === InCommandCodes.CloseGame) {
         roomControls.updateRooms(
@@ -195,13 +200,28 @@ server.on("connection", function (socket) {
 
       //Separation may be of need later on - TODO: update if needed or remove if there will not be a significant difference
       if (err instanceof RoomException) {
-        socket.write(sendConvertedResponse(err.response));
+        socket.write(
+          sendConvertedResponse({
+            commandCode: ExceptionCodes.RoomException,
+            response: err.response,
+          })
+        );
         console.error(err);
       } else if (err instanceof ServerException) {
-        socket.write(sendConvertedResponse(err.response));
+        socket.write(
+          sendConvertedResponse({
+            commandCode: ExceptionCodes.ServerException,
+            response: err.response,
+          })
+        );
         console.error(err);
       } else if (err instanceof GameException) {
-        socket.write(sendConvertedResponse(err.response));
+        socket.write(
+          sendConvertedResponse({
+            commandCode: ExceptionCodes.GameException,
+            response: err.response,
+          })
+        );
       } else {
         socket.write(sendConvertedResponse(err.response));
         console.error(err);
