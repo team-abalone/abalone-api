@@ -170,14 +170,15 @@ server.on("connection", function (socket) {
         // TODO: Fix or remove, chat not that important right now.
         chatControls.chatFunction(data, rooms, socket);
       } else if (commandCode === InCommandCodes.MakeMove) {
-        //Broadcast marbles that are to be moved to other players
-        broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
-          commandCode: OutCommandCodes.MadeMove,
-          toMove: gameControls.makeMove(
-            roomControls.findRoomByPlayer(userId),
-            marbles,
-            direction
-          ),
+          //If move is not valid, an exception will be thrown here
+          gameControls.makeMove(roomControls.findRoomByPlayer(userId), marbles, direction);
+        //Broadcast marbles and direction that are to be moved to other players
+          broadCastToRoom(roomControls.findRoomByPlayer(userId), userId,
+              {
+              commandCode: OutCommandCodes.MadeMove,
+              ids: marbles,
+              direction: direction
+                
         });
       } else if (commandCode === InCommandCodes.CloseGame) {
         roomControls.updateRooms(
