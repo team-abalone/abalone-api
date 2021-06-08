@@ -181,6 +181,7 @@ server.on("connection", function (socket) {
           direction,
           renegadeId,
           secondTurn
+
         );
         //Broadcast marbles and direction that are to be moved to other players
         broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
@@ -253,6 +254,8 @@ server.on("connection", function (socket) {
   });
 
   socket.once("close", function (ev) {
+    sockets = sockets.filter((x) => x.name !== socket.name);
+
     // Probably not a good idea to close room with socket disconnect,
     // as theoretically the client can loose connection and reconnect.
     // Maybe implement a timeout of x seconds and close room after that.
@@ -308,8 +311,11 @@ const broadCastToRoom = (room, excludeUserId, payload) => {
     (s) => room.players.includes(s.name) && s.name !== excludeUserId
   );
 
-  console.log(payload);
   otherPlayers.forEach((op) => {
-    op.write(sendConvertedResponse(payload));
+    try {
+      op.write(sendConvertedResponse(payload));
+    } catch (ex) {
+      console.log("exception on write: " + ex.message);
+    }
   });
 };
