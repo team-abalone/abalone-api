@@ -62,6 +62,8 @@ server.on("connection", function (socket) {
       direction,
       gameFieldType,
       userName,
+      renegadeId,
+      secondTurn,
     } = convertedData;
 
     if (userId && !socket.name) {
@@ -172,15 +174,21 @@ server.on("connection", function (socket) {
         // TODO: Fix or remove, chat not that important right now.
         chatControls.chatFunction(data, rooms, socket);
       } else if (commandCode === InCommandCodes.MakeMove) {
-          //If move is not valid, an exception will be thrown here
-          gameControls.makeMove(roomControls.findRoomByPlayer(userId), marbles, direction);
+        //If move is not valid, an exception will be thrown here
+        gameControls.makeMove(
+          roomControls.findRoomByPlayer(userId),
+          marbles,
+          direction,
+          renegadeId,
+          secondTurn
+        );
         //Broadcast marbles and direction that are to be moved to other players
-          broadCastToRoom(roomControls.findRoomByPlayer(userId), userId,
-              {
-              commandCode: OutCommandCodes.MadeMove,
-              ids: marbles,
-              direction: direction
-                
+        broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
+          commandCode: OutCommandCodes.MadeMove,
+          ids: marbles,
+          direction: direction,
+          renegadeId: renegadeId,
+          secondTurn: secondTurn,
         });
       } else if (commandCode === InCommandCodes.CloseGame) {
         roomControls.updateRooms(
