@@ -8,24 +8,23 @@ import {
 import { FieldConfigs, Directions } from "../GlobalVars.js";
 
 class GameControls {
-    constructor() { }
-    
-  
-    /**
+  constructor() {}
+
+  /**
    * Removes gameField from our room. Other gamerequests will not work after not having a gameField assigned to the room.
    * @param {any} room
    */
-closeGame = (room) => {
-    if (!(room)) {
-        throw new RoomNotFoundException();
+  closeGame = (room) => {
+    if (!room) {
+      throw new RoomNotFoundException();
     }
     if (!room.gameField) {
-          throw new GameNotStartedException();
-      }
+      throw new GameNotStartedException();
+    }
     delete room.gameField;
 
     return room;
-    };
+  };
 
   /**
    * This function will basically broadcast a players move to every other player.
@@ -35,7 +34,7 @@ closeGame = (room) => {
    * @param {any} marbles - Array of marbles that are to be moved
    * @param {any} direction - Direction the marbles will move to (enum in frontend)
    */
-  makeMove = (room, marbles, direction) => {
+  makeMove = (room, marbles, direction, renegadeId, secondTurn) => {
     if (!marbles) {
       throw new GameCommandException();
     }
@@ -45,6 +44,13 @@ closeGame = (room) => {
     if (!room) {
       throw new RoomNotFoundException();
     }
+    if (!renegadeId) {
+      throw new GameCommandException();
+    }
+    if (!secondTurn) {
+      throw new GameCommandException();
+    }
+
     //Command checks
     if (!Directions.hasOwnProperty(direction)) {
       throw new InvalidDirectionException();
@@ -52,20 +58,20 @@ closeGame = (room) => {
 
     if (!direction) {
       throw new GameCommandException();
-      }
+    }
   };
-   
-  compareField = (room,gameField) => {
+
+  compareField = (room, gameField) => {
     if (!room) {
       throw new RoomNotFoundException();
-      }
-      if (!room.gameField) {
+    }
+    if (!room.gameField) {
       throw new GameNotStartedException();
-      }
-      if (!gameField) {
+    }
+    if (!gameField) {
       throw new GameCommandException();
-      }
-      if (room.gameField == gameField) {
+    }
+    if (room.gameField == gameField) {
       return true;
     } else {
       return false;

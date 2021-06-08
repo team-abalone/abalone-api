@@ -62,6 +62,8 @@ server.on("connection", function (socket) {
       direction,
       gameFieldType,
       userName,
+      renegadeId,
+      secondTurn,
     } = convertedData;
 
     if (userId && !socket.name) {
@@ -176,13 +178,18 @@ server.on("connection", function (socket) {
         gameControls.makeMove(
           roomControls.findRoomByPlayer(userId),
           marbles,
-          direction
+          direction,
+          renegadeId,
+          secondTurn
+
         );
         //Broadcast marbles and direction that are to be moved to other players
         broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
           commandCode: OutCommandCodes.MadeMove,
           ids: marbles,
           direction: direction,
+          renegadeId: renegadeId,
+          secondTurn: secondTurn,
         });
       } else if (commandCode === InCommandCodes.CloseGame) {
         roomControls.updateRooms(
@@ -192,8 +199,19 @@ server.on("connection", function (socket) {
           sendConvertedResponse({
             commandCode: OutCommandCodes.CloseGame,
             message: `Game has been closed. Returning to lobby.`,
+            closedBy: userId,
           })
         );
+        broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
+          commandCode: OutCommandCodes.CloseGame,
+          message: `Game has been closed. Returning to lobby.`,
+          closedBy: userId,
+        });
+      } else if (commandCode === InCommandCodes.Surrender) {
+        broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
+          commandCode: OutCommandCodes.Surrender,
+          surrenderedFrom: userId,
+        });
       } else {
         throw new InvalidCommandException();
       }
