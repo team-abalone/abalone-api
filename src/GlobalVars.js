@@ -7,6 +7,7 @@ const InCommandCodes = {
   GetUserId: 60,
   StartGame: 70,
   CloseGame: 80,
+  Surrender: 90,
 };
 
 const OutCommandCodes = {
@@ -18,6 +19,7 @@ const OutCommandCodes = {
   RoomJoinedOther: 60,
   MadeMove: 70,
   CloseGame: 80,
+  Surrender: 90,
 };
 
 const ExceptionCodes = {

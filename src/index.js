@@ -198,8 +198,19 @@ server.on("connection", function (socket) {
           sendConvertedResponse({
             commandCode: OutCommandCodes.CloseGame,
             message: `Game has been closed. Returning to lobby.`,
+            closedBy: userId,
           })
         );
+        broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
+          commandCode: OutCommandCodes.CloseGame,
+          message: `Game has been closed. Returning to lobby.`,
+          closedBy: userId,
+        });
+      } else if (commandCode === InCommandCodes.Surrender) {
+        broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
+          commandCode: OutCommandCodes.Surrender,
+          surrenderedFrom: userId,
+        });
       } else {
         throw new InvalidCommandException();
       }
