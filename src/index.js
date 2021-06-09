@@ -1,5 +1,11 @@
 import net from "net";
 
+var fs = require("fs");
+var log_file = fs.createWriteStream(__dirname + "/log.log", { flags: "w" });
+var ex_file = fs.createWriteStream(__dirname + "/exception.log", {
+  flags: "w",
+});
+
 const PORT = process.env.PORT || 5001;
 const host = process.env.HOST || "0.0.0.0";
 
@@ -181,7 +187,6 @@ server.on("connection", function (socket) {
           direction,
           renegadeId,
           secondTurn
-
         );
         //Broadcast marbles and direction that are to be moved to other players
         broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
@@ -314,8 +319,11 @@ const broadCastToRoom = (room, excludeUserId, payload) => {
   otherPlayers.forEach((op) => {
     try {
       op.write(sendConvertedResponse(payload));
+      log_file.write(`broadcast to ${op} successful roomKey ${room?.roomKey}`);
     } catch (ex) {
-      console.log("exception on write: " + ex.message);
+      ex_file.write(`exception in broadcast to room ${room?.roomKey}`);
+      ex_file.write(ex);
+      ex_file.write(`---------------------------------------------`);
     }
   });
 };
