@@ -5,18 +5,24 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node ./src/index.js"
+    "start": "node ./src/index.js",
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "crypto-random-string": "^4.0.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "migrate-mongo": "^8.2.2",
     "mongoose": "^5.12.4",
     "nodemon": "^2.0.7",
-    "randomstring": "^1.1.5",
     "socket.io": "^4.0.1",
-    "socket.io-client": "^4.0.1"
+    "socket.io-client": "^4.0.1",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "mocha": "^8.4.0"
   }
 }

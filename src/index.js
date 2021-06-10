@@ -1,16 +1,29 @@
 import net from "net";
 
 const PORT = process.env.PORT || 5001;
-const host ="0.0.0.0";
+const host = process.env.HOST || "0.0.0.0";
 
-import { RoomControls, ChatControls } from "./Controls/index.js";
+import { RoomControls, ChatControls, GameControls } from "./Controls/index.js";
+import {
+  InCommandCodes,
+  OutCommandCodes,
+  ExceptionCodes,
+} from "./GlobalVars.js";
 
-import { InCommandCodes } from "./GlobalVars.js";
+import { v1 as uuidv1 } from "uuid";
+
+import {
+  InvalidCommandException,
+  RoomException,
+  ServerException,
+  GameException,
+} from "./Exceptions.js";
 
 const server = net.createServer();
 
 const roomControls = new RoomControls();
 const chatControls = new ChatControls();
+const gameControls = new GameControls();
 
 let sockets = [];
 
@@ -22,13 +35,13 @@ server.listen(PORT, host, function () {
  * The following structure is used to send commands:
  * {
  *  userId: <userId>,
- *  commandCode: <commandCode>,
- *  props: <props>,
+ *  commandCode: <commandCode>
  * }
  */
 server.on("connection", function (socket) {
-  console.log(socket);
-  var remoteAdress = socket.remoteAdress + socket.remotePort;
+  //console.log(socket); keep log cleaner for now
+  console.log(socket.remoteAddress + " " + socket.remotePort);
+  let remoteAdress = socket.remoteAddress + " " + socket.remotePort; // mind the scope
   console.log(`Connections from ${remoteAdress} established.`);
 
   // Keep socket, so it can later be used to notify users about executed actions.
@@ -37,42 +50,234 @@ server.on("connection", function (socket) {
 
   // Handling data from client.
   socket.on("data", function (data) {
-    // Validating the command structure
-    validateCommandStructure(data);
+    let convertedData = JSON.parse(data.toString());
+    //validateCommandStructure(convertedData);
 
-    let { userId } = props;
+    let {
+      userId,
+      commandCode,
+      numberOfPlayers,
+      roomKey,
+      marbles,
+      direction,
+      gameFieldType,
+      userName,
+      renegadeId,
+      secondTurn,
+    } = convertedData;
+
+    if (userId && !socket.name) {
+      socket.name = userId;
+    }
 
     /**
      * Depending on the commandType parameter the appropriate
      * action is executed.
      */
     try {
-      if (InCommandCodes.commandType === InCommandCodes.CreateRoom) {
-        let roomKey = roomControls.CreateRoom(userId);
-        socket.write(roomKey);
-      } else if (InCommandCodes.commandType === InCommandCodes.JoinRoom) {
-        roomControls.JoinRoom(userId, data.roomKey);
-        socket.write("Room joined successfully.");
-        // TODO: Notify other users currently in room.
-      } else if (
-        InCommandCodes.commandType === InCommandCodes.SendChatMessage
-      ) {
+      // Needs to be the first action the app calls, before everything else,
+      // assigns the user a uuid, that needs to be included on each request afterwards
+      if (commandCode === InCommandCodes.GetUserId) {
+        userId = uuidv1();
+
+        // For finding appropriate socket later.
+        socket.name = userId;
+
+        socket.write(
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.IdInitialized,
+            userId,
+          })
+        );
+      } else if (commandCode === InCommandCodes.CreateRoom) {
+        let roomKey = roomControls.createRoom(
+          userId,
+          numberOfPlayers,
+          userName,
+          gameFieldType
+        );
+
+        // Send roomKey to room creator.
+        socket.write(
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.RoomCreated,
+            roomKey,
+          })
+        );
+      } else if (commandCode === InCommandCodes.JoinRoom) {
+        let room = roomControls.joinRoom(userId, roomKey, userName);
+
+        // Notify current user about his successful join.
+        socket.write(
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.RoomJoined,
+            roomKey: room?.roomKey,
+            players: room?.players,
+            createdBy: room?.createdBy,
+            numberOfPlayers: room?.numberOfPlayers,
+            playerMap: room?.playerMap,
+          })
+        );
+
+        // Notify other players in room about room join.
+        broadCastToRoom(userId, {
+          commandCode: OutCommandCodes.RoomJoinedOther,
+          roomKey: room?.roomKey,
+          players: room?.players,
+          createdBy: room?.createdBy,
+          numberOfPlayers: room?.numberOfPlayers,
+          playerMap: room?.playerMap,
+        });
+      } else if (commandCode === InCommandCodes.CloseRoom) {
+        let room = roomControls.closeRoom(userId, roomKey);
+
+        if (room) {
+          socket.write(
+            sendConvertedResponse({
+              commandCode: OutCommandCodes.RoomClosed,
+            })
+          );
+        }
+
+        // Notify other players in room about room closal.
+        broadCastToRoom(userId, {
+          commandCode: OutCommandCodes.RoomClosed,
+        });
+      } else if (commandCode === InCommandCodes.StartGame) {
+        let room = roomControls.startGame(userId);
+        let players = [];
+
+        // Notify creator of room about successful game start.
+        socket.write(
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.GameStarted,
+            gameField: room.gameField,
+            roomKey: room?.roomKey,
+            players: room?.players,
+            createdBy: room?.createdBy,
+            numberOfPlayers: room?.numberOfPlayers,
+            playerMap: room?.playerMap,
+          })
+        );
+
+        // Notify other players in room about game start.
+        broadCastToRoom(userId, {
+          commandCode: OutCommandCodes.GameStarted,
+          gameField: room.gameField,
+          roomKey: room?.roomKey,
+          players: room?.players,
+          createdBy: room?.createdBy,
+          numberOfPlayers: room?.numberOfPlayers,
+          playerMap: room?.playerMap,
+        });
+      } else if (commandCode === InCommandCodes.SendChatMessage) {
         // TODO: Fix or remove, chat not that important right now.
         chatControls.chatFunction(data, rooms, socket);
+      } else if (commandCode === InCommandCodes.MakeMove) {
+        //If move is not valid, an exception will be thrown here
+        /*gameControls.makeMove(
+              roomControls.findRoomByPlayer(userId),
+              marbles,
+              direction,
+              renegadeId,
+              secondTurn
+            );*/
+        //Broadcast marbles and direction that are to be moved to other players
+        broadCastToRoom(userId, {
+          commandCode: OutCommandCodes.MadeMove,
+          ids: marbles,
+          direction: direction,
+          renegadeId: renegadeId,
+          secondTurn: secondTurn,
+        });
+      } else if (commandCode === InCommandCodes.CloseGame) {
+        roomControls.updateRooms(
+          gameControls.closeGame(roomControls.findRoomByPlayer(userId))
+        );
+        socket.write(
+          sendConvertedResponse({
+            commandCode: OutCommandCodes.CloseGame,
+            message: `Game has been closed. Returning to lobby.`,
+            closedBy: userId,
+          })
+        );
+        broadCastToRoom(userId, {
+          commandCode: OutCommandCodes.CloseGame,
+          message: `Game has been closed. Returning to lobby.`,
+          closedBy: userId,
+        });
+      } else if (commandCode === InCommandCodes.Surrender) {
+        broadCastToRoom(userId, {
+          commandCode: OutCommandCodes.Surrender,
+          surrenderedFrom: userId,
+        });
+      } else if (commandCode === InCommandCodes.LeaveRoom) {
+        if (roomControls.findRoomByPlayer(userId)) {
+          socket.write(
+            sendConvertedResponse({
+              commandCode: 100,
+            })
+          );
+
+          broadCastToRoom(userId, {
+            commandCode: 101,
+            userId: userId,
+          });
+        } else {
+          socket.write(
+            sendConvertedResponse({
+              commandCode: OutCommandCodes.NoRoomToLeave,
+            })
+          );
+        }
       } else {
-        throw new Error("Unclear type of action.");
+        throw new InvalidCommandException();
       }
     } catch (err) {
-      socket.write(err);
+      // Here we handle errors in case something goes wrong ;)
+
+      //Separation may be of need later on - TODO: update if needed or remove if there will not be a significant difference
+      if (err instanceof RoomException) {
+        socket.write(
+          sendConvertedResponse({
+            commandCode: ExceptionCodes.RoomException,
+            response: err.response,
+          })
+        );
+        console.error(err);
+      } else if (err instanceof ServerException) {
+        socket.write(
+          sendConvertedResponse({
+            commandCode: ExceptionCodes.ServerException,
+            response: err.response,
+          })
+        );
+        console.error(err);
+      } else if (err instanceof GameException) {
+        socket.write(
+          sendConvertedResponse({
+            commandCode: ExceptionCodes.GameException,
+            response: err.response,
+          })
+        );
+      } else {
+        socket.write(sendConvertedResponse(err.response));
+        console.error(err);
+      }
     }
   });
 
   socket.on("error", function (error) {
-    console.log(error);
+    // socket.write(error);
   });
 
   socket.once("close", function (ev) {
-    console.log(ev);
+    sockets = sockets.filter((x) => x.name !== socket.name);
+
+    // Probably not a good idea to close room with socket disconnect,
+    // as theoretically the client can loose connection and reconnect.
+    // Maybe implement a timeout of x seconds and close room after that.
+    //roomControls.leaveRoomWithSocket(socket);
   });
 });
 
@@ -83,12 +288,53 @@ server.on("connection", function (socket) {
  * @param {*} input
  * @param {*} includeUserId
  */
-const validateCommandStructure = (input, includeUserId = false) => {
-  if (
-    !input.hasOwnProperty("commandCode") ||
-    !input.hasOwnProperty("props") ||
-    (includeUserId && !input.hasOwnProperty("userId"))
-  ) {
-    throw "Invalid command structure";
+
+const validateCommandStructure = (
+  input,
+  includeUserId = false,
+  includeProps = false
+) => {
+  try {
+    if (
+      !input.hasOwnProperty("commandCode") ||
+      (includeProps && !input.hasOwnProperty("props")) ||
+      (includeUserId && !input.hasOwnProperty("userId"))
+    ) {
+      throw new InvalidCommandException();
+    }
+  } catch (e) {
+    console.log(`${e.name}: ${e.message}`);
   }
+};
+
+/**
+ * Used to add a linebreak to every response. Our client will be reading all the data in lines,
+ * this ensures that the Client knows, where our response ends.
+ * @param {any} res - String resulting from JSON
+ */
+const sendConvertedResponse = (res) => {
+  return `${JSON.stringify(res)}\n`;
+};
+
+/**
+ * Broadcasting a payload to all players in room, excluding the user with the excludeUserId.
+ * @param {*} room The room to broadcast to.
+ * @param {*} excludeUserId The user to exclude.
+ * @param {*} payload The payload to broadcast.
+ */
+//TODO: param room is redundant. whithin broadCastToRoom, we can retrieve the corresponding room via the exludeUserId-param
+const broadCastToRoom = (excludeUserId, payload) => {
+  let room = roomControls.findRoomByPlayer(excludeUserId);
+  // Notify other players about game start.
+  let otherPlayers = sockets.filter(
+    (s) => room.players.includes(s.name) && s.name !== excludeUserId
+  );
+
+  otherPlayers.forEach((op) => {
+    try {
+      op.write(sendConvertedResponse(payload));
+    } catch (ex) {
+      console.log("exception on write: " + ex.message);
+    }
+  });
 };
