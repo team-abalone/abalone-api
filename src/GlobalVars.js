@@ -8,6 +8,7 @@ const InCommandCodes = {
   StartGame: 70,
   CloseGame: 80,
   Surrender: 90,
+  LeaveRoom: 100,
 };
 
 const OutCommandCodes = {
@@ -20,6 +21,9 @@ const OutCommandCodes = {
   MadeMove: 70,
   CloseGame: 80,
   Surrender: 90,
+  RoomLeft: 100,
+  RoomLeftOtherPlayer: 101,
+  NoRoomToLeave: 102,
 };
 
 const ExceptionCodes = {
