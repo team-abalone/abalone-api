@@ -120,7 +120,7 @@ server.on("connection", function (socket) {
         );
 
         // Notify other players in room about room join.
-        broadCastToRoom(room, userId, {
+        broadCastToRoom(userId, {
           commandCode: OutCommandCodes.RoomJoinedOther,
           roomKey: room?.roomKey,
           players: room?.players,
@@ -140,7 +140,7 @@ server.on("connection", function (socket) {
         }
 
         // Notify other players in room about room closal.
-        broadCastToRoom(room, userId, {
+        broadCastToRoom(userId, {
           commandCode: OutCommandCodes.RoomClosed,
         });
       } else if (commandCode === InCommandCodes.StartGame) {
@@ -161,7 +161,7 @@ server.on("connection", function (socket) {
         );
 
         // Notify other players in room about game start.
-        broadCastToRoom(room, userId, {
+        broadCastToRoom(userId, {
           commandCode: OutCommandCodes.GameStarted,
           gameField: room.gameField,
           roomKey: room?.roomKey,
@@ -184,7 +184,7 @@ server.on("connection", function (socket) {
 
         );
         //Broadcast marbles and direction that are to be moved to other players
-        broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
+        broadCastToRoom(userId, {
           commandCode: OutCommandCodes.MadeMove,
           ids: marbles,
           direction: direction,
@@ -202,13 +202,13 @@ server.on("connection", function (socket) {
             closedBy: userId,
           })
         );
-        broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
+        broadCastToRoom(userId, {
           commandCode: OutCommandCodes.CloseGame,
           message: `Game has been closed. Returning to lobby.`,
           closedBy: userId,
         });
       } else if (commandCode === InCommandCodes.Surrender) {
-        broadCastToRoom(roomControls.findRoomByPlayer(userId), userId, {
+        broadCastToRoom(userId, {
           commandCode: OutCommandCodes.Surrender,
           surrenderedFrom: userId,
         });
@@ -305,7 +305,8 @@ const sendConvertedResponse = (res) => {
  * @param {*} payload The payload to broadcast.
  */
 //TODO: param room is redundant. whithin broadCastToRoom, we can retrieve the corresponding room via the exludeUserId-param
-const broadCastToRoom = (room, excludeUserId, payload) => {
+const broadCastToRoom = (excludeUserId, payload) => {
+    let room = roomControls.findRoomByPlayer(excludeUserId);
   // Notify other players about game start.
   let otherPlayers = sockets.filter(
     (s) => room.players.includes(s.name) && s.name !== excludeUserId
