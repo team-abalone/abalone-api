@@ -40,11 +40,15 @@ class RoomControls {
     }
 
     let room = {
-      roomKey: cryptoRandomString({ length: 5, type: "distinguishable" }),
+      roomKey: cryptoRandomString({
+        length: 5,
+        characters:
+          "abcdefghijklmnopqrstuvwxyz0123456789",
+      }),
       createdBy: userId,
       players: [userId],
       numberOfPlayers: numberOfPlayers,
-      gameFieldType,
+      gameFieldType: gameFieldType,
       playerMap: { [userId]: userName },
     };
 
@@ -103,6 +107,13 @@ class RoomControls {
       case InitialFieldTypes.Default:
         initField = FieldConfigs.TwoPlayers.Default;
         break;
+      case InitialFieldTypes.TheWall:
+        initField = FieldConfigs.TwoPlayers.TheWall;
+        break;
+      case InitialFieldTypes.Snakes:
+        initField = FieldConfigs.TwoPlayers.Snakes;
+        break;
+
       default:
         initField = FieldConfigs.TwoPlayers.GermanDaisy;
         break;

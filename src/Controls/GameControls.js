@@ -46,8 +46,8 @@ class GameControls {
     }
     if (!renegadeId) {
       throw new GameCommandException();
-    }
-    if (!secondTurn) {
+     }
+      if (secondTurn == null) {
       throw new GameCommandException();
     }
 

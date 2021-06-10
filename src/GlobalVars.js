@@ -8,6 +8,7 @@ const InCommandCodes = {
   StartGame: 70,
   CloseGame: 80,
   Surrender: 90,
+  LeaveRoom: 100,
 };
 
 const OutCommandCodes = {
@@ -20,6 +21,9 @@ const OutCommandCodes = {
   MadeMove: 70,
   CloseGame: 80,
   Surrender: 90,
+  RoomLeft: 100,
+  RoomLeftOtherPlayer: 101,
+  NoRoomToLeave: 102,
 };
 
 const ExceptionCodes = {
@@ -38,6 +42,8 @@ const GameParameters = {
 const InitialFieldTypes = {
   GermanDaisy: 10,
   Default: 20,
+  TheWall: 30,
+  Snakes: 40,
 };
 
 /**
@@ -71,8 +77,31 @@ const FieldConfigs = {
       [2, 2, 0, 0, 1, 1],
       [0, 0, 0, 0, 0],
     ],
+    Snakes: [
+      [2, 2, 2, 2, 2],
+      [2, 0, 0, 0, 0, 0],
+      [2, 0, 0, 0, 0, 0, 0],
+      [2, 0, 0, 2, 2, 1, 1, 0],
+      [0, 2, 0, 2, 0, 1, 0, 1, 0],
+      [0, 2, 2, 1, 1, 0, 0, 1],
+      [0, 0, 0, 0, 0, 0, 1],
+      [0, 0, 0, 0, 0, 1],
+      [1, 1, 1, 1, 1],
+    ],
+    TheWall: [
+      [0, 0, 1, 0, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 1, 1, 1, 1, 1, 0],
+      [1, 1, 1, 1, 1, 1, 1, 1],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [2, 2, 2, 2, 2, 2, 2, 2],
+      [0, 2, 2, 2, 2, 2, 0],
+      [0, 0, 0, 0, 0, 0],
+      [0, 0, 2, 0, 0],
+    ],
   },
 };
+
 const Directions = {
   RIGHTUP: [1, 1],
   LEFTUP: [-1, 1],
