@@ -43,8 +43,8 @@ class RoomControls {
       roomKey: cryptoRandomString({ length: 5, type: "distinguishable" }),
       createdBy: userId,
       players: [userId],
-      numberOfPlayers: numberOfPlayers,
-      gameFieldType,
+        numberOfPlayers: numberOfPlayers,
+        gameFieldType: gameFieldType,
       playerMap: { [userId]: userName },
     };
 

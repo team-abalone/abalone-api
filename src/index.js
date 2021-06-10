@@ -175,14 +175,13 @@ server.on("connection", function (socket) {
         chatControls.chatFunction(data, rooms, socket);
       } else if (commandCode === InCommandCodes.MakeMove) {
         //If move is not valid, an exception will be thrown here
-        gameControls.makeMove(
+        /*gameControls.makeMove(
           roomControls.findRoomByPlayer(userId),
           marbles,
           direction,
           renegadeId,
           secondTurn
-
-        );
+        );*/
         //Broadcast marbles and direction that are to be moved to other players
         broadCastToRoom(userId, {
           commandCode: OutCommandCodes.MadeMove,
