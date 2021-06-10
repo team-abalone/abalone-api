@@ -103,6 +103,13 @@ class RoomControls {
       case InitialFieldTypes.Default:
         initField = FieldConfigs.TwoPlayers.Default;
         break;
+      case InitialFieldTypes.TheWall:
+        initField = FieldConfigs.TwoPlayers.TheWall;
+        break;
+      case InitialFieldTypes.Snakes:
+        initField = FieldConfigs.TwoPlayers.Snakes;
+        break;
+
       default:
         initField = FieldConfigs.TwoPlayers.GermanDaisy;
         break;

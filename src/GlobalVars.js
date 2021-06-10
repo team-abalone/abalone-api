@@ -38,6 +38,8 @@ const GameParameters = {
 const InitialFieldTypes = {
   GermanDaisy: 10,
   Default: 20,
+  TheWall: 30,
+  Snakes: 40,
 };
 
 /**
