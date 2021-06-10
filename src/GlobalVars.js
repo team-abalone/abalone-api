@@ -95,19 +95,7 @@ const FieldConfigs = {
     ],
   },
 };
-/*
-                return new int[][]{
-                        {},
-                        {},
-                        {},
-                        {},
-                        {},
-                        {},
-                        {},
-                        {},
-                        {}
-                };
- * */
+
 const Directions = {
   RIGHTUP: [1, 1],
   LEFTUP: [-1, 1],
