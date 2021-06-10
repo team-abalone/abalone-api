@@ -1,4 +1,4 @@
-import randomstring from "randomstring";
+import cryptoRandomString from "crypto-random-string";
 
 import {
   RoomNotFoundException,
@@ -40,7 +40,7 @@ class RoomControls {
     }
 
     let room = {
-      roomKey: randomstring.generate(5),
+      roomKey: cryptoRandomString({ length: 5, type: "distinguishable" }),
       createdBy: userId,
       players: [userId],
       numberOfPlayers: numberOfPlayers,
