@@ -40,11 +40,11 @@ class RoomControls {
     }
 
     let room = {
-      roomKey: cryptoRandomString({ length: 5, type: "distinguishable" }),
+      roomKey: cryptoRandomString({ length: 5, type: "distinguishable" }).toLowerCase,
       createdBy: userId,
       players: [userId],
-        numberOfPlayers: numberOfPlayers,
-        gameFieldType: gameFieldType,
+      numberOfPlayers: numberOfPlayers,
+      gameFieldType: gameFieldType,
       playerMap: { [userId]: userName },
     };
 
